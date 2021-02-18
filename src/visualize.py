@@ -428,7 +428,17 @@ def visualize(data_prefix):
 if __name__ == "__main__":
     
     keywords, from_date, to_date = main(sys.argv[1:])
-    keyword_list = keywords.split(",")
+    ori_keyword_list = keywords.split(",")
+    
+    keyword_list = []
+    for keyword in ori_keyword_list:
+        if re.findall("~#", keyword):
+            keyword = re.sub('~', '', keyword)
+        else:
+            keyword = re.sub("~", " ", keyword)
+        keyword_list.append(keyword)
+    
+    print(keyword_list)
 
     data_prefix = keyword_list[0]
     

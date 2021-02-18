@@ -95,11 +95,19 @@ def main(argv):
             print('TESTING: ', test_limit)
     print('Input keywords are ', keywords)
     return keywords, test_limit#, from_date, to_date - these are not necessary to output for extract_data.py
-        
+
 if __name__ == "__main__":
     
     keywords, test_limit = main(sys.argv[1:])
-    keyword_list = keywords.split(",")
+    ori_keyword_list = keywords.split(",")
+    
+    keyword_list = []
+    for keyword in ori_keyword_list:
+        if re.findall("~#", keyword):
+            keyword = re.sub('~', '', keyword)
+        else:
+            keyword = re.sub("~", " ", keyword)
+        keyword_list.append(keyword)
     
     print(keyword_list)
 

@@ -24,12 +24,32 @@ bash pipeline.sh -k keyword1,keyword2 -f 2020-12-01 -t 2020-12-30
 
 | Flag  | Meaning  | Format  | Example1  | Example2  |
 |---|---|---|---|---|
-| -k  | Keyword(s) to query  | keyword1,keyword2  | covid  | covid,#dkpol  |
+| -k  | Keyword(s) to query  | keyword1,keyword2  | covid  | covid,dkpol  |
 | -f  | From date: if one wants to specify date range  | YEAR-MONTH-DAY  | 2020-01-01  | 2020-12-02  |
 | -t  | To date: if one wants to specify date range  | YEAR-MONTH-DAY  | 2020-01-30  | 2020-12-20  |
 | -l  | Test with limit: to speed up testing, samples only from data of this year/month/day  | YEARMONTHDAY  | 202001  | 20201220 |
 
 NOTE: the **first** keyword entered is also used to prefix the data files and figures!
+
+### If keywords are special: contain hashtags, spaces
+
+#### Hashtags
+
+```bash
+cd src
+bash pipeline.sh -k ~#keyword1,keyword2 -f 2020-12-01 -t 2020-12-30
+
+```
+Trail the 1st hashtag with ~
+
+#### Words with spaces
+
+```bash
+cd src
+bash pipeline.sh -k key~word1,keyword2 -f 2020-12-01 -t 2020-12-30
+
+```
+Replace space with ~
 
 
 ## Description of steps
