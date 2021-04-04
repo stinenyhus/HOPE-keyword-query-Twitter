@@ -9,6 +9,9 @@ import ndjson
 import re
 import string
 import getopt, sys
+import os.path
+from os import path
+from icecream import ic
 
 def retrieve_retweets(row):
     if re.match("^RT", row):
@@ -37,10 +40,62 @@ def extract_keywords(row, keyword_list):
     res = [ele for ele in keyword_list if(ele in tweet)] 
     return res
 
-def extract_data(keyword_list, data_prefix, mega_path):
+def remove_date_dash(text):
+    for punctuation in string.punctuation:
+        text = text.replace(punctuation, '')
+    return text
+
+def remove_processed_files_from_path(output_name):
+    ori_df = pd.read_csv(output_name)
+    ori_df = ori_df[ori_df["0"] != 'created_at'].reset_index(drop=True)
+        
+    dates = pd.to_datetime(ori_df["0"].dropna()[1:], utc=True).dt.strftime('%Y-%m-%d').drop_duplicates().reset_index(drop = True).astype(str)
+    dates_to_ignore = dates.apply(remove_date_dash).to_list()
+        
+    files_to_ignore = []
+    for file in mega_path:
+        date = re.findall(r'\/data\/001_twitter_hope\/preprocessed\/da\/td_(\d*)', file)[0]
+        if date in dates_to_ignore:
+            files_to_ignore.append(file)
+
+    for element in files_to_ignore:
+        if element in mega_path:
+            mega_path.remove(element)
+            
+    return mega_path
+
+def remove_dates_lessthan_from_date(from_date_str):
+    files_to_ignore = []
+    for file in mega_path:
+        date = re.findall(r'\/data\/001_twitter_hope\/preprocessed\/da\/td_(\d*)', file)[0]
+        if date < from_date_str:
+            files_to_ignore.append(file)
+
+    for element in files_to_ignore:
+        if element in mega_path:
+            mega_path.remove(element)
+            
+    return mega_path
+
+def extract_data(keyword_list, data_prefix, mega_path, from_date):
     print("START data extraction for keywords: ", keyword_list)
     print("---")
     
+    output_name = "../" + data_prefix + "_data.csv"
+    print("Does the file already exist?: ", path.exists(output_name))
+    
+    if path.exists(output_name):
+        mega_path = remove_processed_files_from_path(output_name)
+    mega_path.sort()
+    
+    if from_date:
+        from_date_str = remove_date_dash(from_date)
+        mega_path = remove_dates_lessthan_from_date(from_date_str)
+        
+    mega_path.sort()
+    
+    ic(mega_path)
+        
     for file in mega_path:
         file_name = re.findall(r'(td.*)\.ndjson', file)[0]
 
@@ -94,11 +149,12 @@ def main(argv):
             test_limit = arg
             print('TESTING: ', test_limit)
     print('Input keywords are ', keywords)
-    return keywords, test_limit#, from_date, to_date - these are not necessary to output for extract_data.py
+    return keywords, test_limit, from_date#, to_date - these are not necessary to output for extract_data.py
 
 if __name__ == "__main__":
     
-    keywords, test_limit = main(sys.argv[1:])
+    keywords, test_limit, from_date = main(sys.argv[1:])
+    ic(main(sys.argv[1:]))
     ori_keyword_list = keywords.split(",")
     
     keyword_list = []
@@ -109,13 +165,15 @@ if __name__ == "__main__":
             keyword = re.sub("~", " ", keyword)
         keyword_list.append(keyword)
     
-    print(keyword_list)
+    ic(keyword_list)
 
     data_prefix = keyword_list[0]
 
     if test_limit:
         pathname = '/data/001_twitter_hope/preprocessed/da/td_' + str(test_limit) + '*.ndjson'
+        ic(pathname)
         mega_path = glob.glob(pathname)
+        ic(mega_path)
     else:
         # Runs through all the files here, date does not matter
         pathname = '/data/001_twitter_hope/preprocessed/da/*.ndjson'
@@ -123,4 +181,5 @@ if __name__ == "__main__":
 
     ###############################
     print("--------EXTRACT DATA--------")
-    extract_data(keyword_list, data_prefix, mega_path)
+    ic(mega_path)
+    extract_data(keyword_list, data_prefix, mega_path, from_date)

@@ -86,12 +86,15 @@ def main(argv):
 def preprocess_stats(data_prefix, from_date, to_date):
     filename = "../" + data_prefix + "_data_SA.csv"
     
-    df = pd.read_csv(filename)[1:].rename(columns={"0":"created_at", "1":"id", "2":"text", "3":"search_keyword"})
+    df = pd.read_csv(filename)
+    ic(df.head())#[1:].rename(columns={"0":"created_at", "1":"id", "2":"text", "3":"search_keyword"})
 
     df = df[df["created_at"] != '0'].reset_index(drop=True)
+    df = df[df["created_at"] != 'created_at'].reset_index(drop=True)
     df = df.sort_values(by='created_at').reset_index(drop=True)
     ic(len(df))
-        
+    
+    ic(df.created_at.unique())
     df["date"] = pd.to_datetime(df["created_at"], utc=True).dt.strftime('%Y-%m-%d')
     
     if from_date:

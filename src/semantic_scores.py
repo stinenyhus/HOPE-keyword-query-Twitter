@@ -13,9 +13,10 @@ import re
 def semantic_scores(data_prefix):
     filename = "../" + data_prefix + "_data.csv"
     sent_df = pd.read_csv(filename)[1:].rename(columns={"0":"created_at", "1":"id", "2":"text", "3":"search_keyword"})
-    
+
     # VADER SENTIMENT
     print("Conducting SA with VADER")
+    print(sent_df.head())
     tts = ttx.TextToSentiment(lang='da', method="dictionary")
     out = tts.texts_to_sentiment(list(sent_df['text'].values))
     sent_df = pd.concat([sent_df, out], axis=1).dropna()

@@ -6,17 +6,21 @@ import glob
 import pandas as pd
 import getopt, sys
 import os, shutil
+import os.path
+from os import path
 
 ### Define Functions ###
 
 def get_df(filenames):
-    df = pd.read_csv(filenames[0], header=None)
+    df = pd.read_csv(filenames[0], header = None)
 
     for file in filenames[1:]:
         df_0 = pd.read_csv(file, header = None)
         df = df.append(df_0)
 
     df = df.drop_duplicates()
+    
+    print("DF:", df.head())
 
     return df
 
@@ -31,7 +35,13 @@ def join_files(data_prefix):
     
     print("Get data: ", data_prefix)
     df = get_df(filenames)
+    df = df.rename(columns = {0:"0", 1:"1", 2:"2", 3:"3"})
 
+    print("Does the file already exist?: ", path.exists(output_name))
+    if path.exists(output_name):
+        ori_df = pd.read_csv(output_name)
+        df = pd.concat([ori_df, df])
+    
     print("Save file")
     df.to_csv(output_name, index=False)
     del df
@@ -96,6 +106,10 @@ if __name__ == "__main__":
     
     ###############################
     print("--------JOIN FILES--------")
-    join_files(data_prefix)
-    empty_data_folder()
+    if len(os.listdir('../data/')) == 0:
+        print("Directory is empty")
+    else:    
+        print("Directory is not empty")
+        join_files(data_prefix)
+        empty_data_folder()
     print("--------FINISHED----------")
