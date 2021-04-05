@@ -28,8 +28,8 @@ def clean_dates(df):
     df.iloc[:,0] = pd.to_datetime(df.iloc[:,0], utc=True).dt.strftime('%Y-%m-%d %H:%M:%S')
     return df
 
-def join_files(data_prefix):
-    filename = "../data/" + data_prefix + "*.csv"
+def join_files(temp_path,data_prefix):
+    filename = temp_path + "*.csv"
     filenames = glob.glob(filename)
     output_name = "../" + data_prefix + "_data.csv"
     
@@ -46,19 +46,16 @@ def join_files(data_prefix):
     df.to_csv(output_name, index=False)
     del df
 
-def empty_data_folder():
-    print("Delete contents of data/")
-    folder = '/home/commando/maris/hope-keyword-templates/data/'
-    for filename in os.listdir(folder):
-        file_path = os.path.join(folder, filename)
-        try:
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-        except Exception as e:
-            print('Failed to delete %s. Reason: %s' % (file_path, e))
+def empty_data_folder(temp_path):
+    print("Delete contents of tmp_*/")
 
+    try:
+        shutil.rmtree(temp_path)
+    except OSError:
+        print ("Deletion of the directory %s failed" % temp_path)
+    else:
+        print ("Successfully deleted the directory %s" % temp_path)
+    
 def main(argv):
     keywords = ''
     from_date = '' 
@@ -103,13 +100,14 @@ if __name__ == "__main__":
     print(keyword_list)
 
     data_prefix = keyword_list[0]
+    temp_path = "/home/commando/maris/hope-keyword-templates/tmp_" + data_prefix + "/"
     
     ###############################
     print("--------JOIN FILES--------")
-    if len(os.listdir('../data/')) == 0:
+    if len(os.listdir(temp_path)) == 0:
         print("Directory is empty")
     else:    
         print("Directory is not empty")
-        join_files(data_prefix)
-        empty_data_folder()
+        join_files(temp_path,data_prefix)
+    empty_data_folder(temp_path)
     print("--------FINISHED----------")

@@ -9,6 +9,7 @@ import ndjson
 import re
 import string
 import getopt, sys
+import os
 import os.path
 from os import path
 from icecream import ic
@@ -77,6 +78,30 @@ def remove_dates_lessthan_from_date(from_date_str):
             
     return mega_path
 
+def ignore_dates_less_than(output_name):
+    ori_df = pd.read_csv(output_name)
+    ori_df = ori_df[ori_df["0"] != 'created_at'].reset_index(drop=True)
+        
+    dates = pd.to_datetime(ori_df["0"].dropna()[1:], utc=True).dt.strftime('%Y-%m-%d').drop_duplicates().reset_index(drop = True).astype(str)
+    
+    # Sort the dates
+    
+    dates_to_ignore = dates.apply(remove_date_dash).to_list()
+    
+    maximum_date = remove_date_dash(max(dates))
+        
+    files_to_ignore = []
+    for file in mega_path:
+        date = re.findall(r'\/data\/001_twitter_hope\/preprocessed\/da\/td_(\d*)', file)[0]
+        if date <= maximum_date:
+            files_to_ignore.append(file)
+
+    for element in files_to_ignore:
+        if element in mega_path:
+            mega_path.remove(element)
+            
+    return mega_path
+
 def extract_data(keyword_list, data_prefix, mega_path, from_date):
     print("START data extraction for keywords: ", keyword_list)
     print("---")
@@ -85,16 +110,21 @@ def extract_data(keyword_list, data_prefix, mega_path, from_date):
     print("Does the file already exist?: ", path.exists(output_name))
     
     if path.exists(output_name):
-        mega_path = remove_processed_files_from_path(output_name)
-    mega_path.sort()
-    
-    if from_date:
-        from_date_str = remove_date_dash(from_date)
-        mega_path = remove_dates_lessthan_from_date(from_date_str)
-        
+        mega_path = ignore_dates_less_than(output_name)
+    print("Go through files: \n")    
     mega_path.sort()
     
     ic(mega_path)
+    
+    # Create a directory for these files
+    temp_path = "../tmp_" + data_prefix + "/"
+
+    try:
+        os.mkdir(temp_path)
+    except OSError:
+        print ("Creation of the directory %s failed" % temp_path)
+    else:
+        print ("Successfully created the directory %s " % temp_path)
         
     for file in mega_path:
         file_name = re.findall(r'(td.*)\.ndjson', file)[0]
@@ -114,7 +144,7 @@ def extract_data(keyword_list, data_prefix, mega_path, from_date):
         df = df[df["search_keyword"] != "[]"].drop_duplicates().reset_index(drop=True)
                 
         if len(df) > 0:
-            filename = "../data/" + data_prefix + "_" + file_name + ".csv"
+            filename = temp_path + "/" + data_prefix + "_" + file_name + ".csv"
             df.to_csv(filename, index = False)
 
             print("Save of " + file_name + " done")
@@ -181,5 +211,4 @@ if __name__ == "__main__":
 
     ###############################
     print("--------EXTRACT DATA--------")
-    ic(mega_path)
     extract_data(keyword_list, data_prefix, mega_path, from_date)
