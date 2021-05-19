@@ -6,6 +6,7 @@ import pandas as pd
 from icecream import ic
 import getopt, sys
 import re
+import glob
 
 def remove_emoji(string):
     emoji_pattern = re.compile("["
@@ -84,10 +85,11 @@ def main(argv):
     return keywords, from_date, to_date#, test_limit - this is not necessary to output for preprocess_stats.py
 
 def preprocess_stats(data_prefix, from_date, to_date):
-    filename = "../" + data_prefix + "_data_SA.csv"
+    filename = "../" + data_prefix + "_data.csv"
     
-    df = pd.read_csv(filename)
-    ic(df.head())#[1:].rename(columns={"0":"created_at", "1":"id", "2":"text", "3":"search_keyword"})
+    df = pd.read_csv(filename,lineterminator='\n')[1:].rename(columns={"0":"created_at", "1":"id", "2":"text", "3":"search_keyword"})
+    print(df.head())
+    ic(df.head())
 
     df = df[df["created_at"] != '0'].reset_index(drop=True)
     df = df[df["created_at"] != 'created_at'].reset_index(drop=True)
@@ -106,7 +108,32 @@ def preprocess_stats(data_prefix, from_date, to_date):
     
     print(df.groupby(["search_keyword"]).count().reset_index())
     
-    out_filename = "../" + data_prefix + "_vis.csv"
+    out_filename = "../" + data_prefix + "_data_pre.csv"
+    df.to_csv(out_filename, index=False)
+    
+def preprocess_stats_external(filename):
+    df = pd.read_json(filename, lines = True)
+    ic(df.head())#[1:].rename(columns={"0":"created_at", "1":"id", "2":"text", "3":"search_keyword"})
+    
+    df = df[["created_at", "id", "text"]]
+    ic(df.head())
+    
+    df = df[df["created_at"] != '0'].reset_index(drop=True)
+    df = df[df["created_at"] != 'created_at'].reset_index(drop=True)
+    df = df.sort_values(by='created_at').reset_index(drop=True)
+    ic(len(df))
+    
+    ic(df.created_at.unique())
+    df["date"] = pd.to_datetime(df["created_at"], utc=True).dt.strftime('%Y-%m-%d')
+    
+    if from_date:
+        # Choose specified date range
+        mask = (df['date'] > from_date) & (df['date'] <= to_date)
+        df = df.loc[mask]
+    
+    df = remove_quote_tweets(df)
+        
+    out_filename = "../" + data_prefix + "_data.csv"
     df.to_csv(out_filename, index=False)
     
 if __name__ == "__main__":
@@ -129,3 +156,5 @@ if __name__ == "__main__":
     ############################
 
     preprocess_stats(data_prefix, from_date, to_date)
+    
+    #preprocess_stats_external(glob.glob("/data/rbkh-twitter-coronapas_epidemilov_tvangs/tvangsvaccine*.ndjson")[0])

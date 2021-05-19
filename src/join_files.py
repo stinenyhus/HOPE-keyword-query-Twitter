@@ -12,10 +12,20 @@ from os import path
 ### Define Functions ###
 
 def get_df(filenames):
-    df = pd.read_csv(filenames[0], header = None)
+    df = pd.read_csv(filenames[0], header = None, sep=",")
+    
+    ####################################
+    #df.columns = df.iloc[0]
+    #df = df.iloc[1:]
+    ####################################
 
     for file in filenames[1:]:
-        df_0 = pd.read_csv(file, header = None)
+        print(file)
+        df_0 = pd.read_csv(file, header = None, sep=",", lineterminator='\n')
+        ####################################
+        #df_0.columns = df_0.iloc[0]
+        #df_0 = df_0.iloc[1:]
+        ####################################
         df = df.append(df_0)
 
     df = df.drop_duplicates()

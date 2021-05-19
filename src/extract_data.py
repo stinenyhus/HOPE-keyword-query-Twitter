@@ -37,8 +37,8 @@ def extract_keywords(row, keyword_list):
         print("Broken text: ", row["text"])
         row["text"] = row["text"].astype(str)
     tweet = row["text"].lower()
-    tweet = tweet.translate(str.maketrans('', '', string.punctuation))
     res = [ele for ele in keyword_list if(ele in tweet)] 
+    #res = res.translate(str.maketrans('', '', string.punctuation))
     return res
 
 def remove_date_dash(text):
@@ -85,7 +85,6 @@ def ignore_dates_less_than(output_name):
     dates = pd.to_datetime(ori_df["0"].dropna()[1:], utc=True).dt.strftime('%Y-%m-%d').drop_duplicates().reset_index(drop = True).astype(str)
     
     # Sort the dates
-    
     dates_to_ignore = dates.apply(remove_date_dash).to_list()
     
     maximum_date = remove_date_dash(max(dates))

@@ -2,11 +2,12 @@
 
 source /home/commando/maris/bin/activate
 python extract_data.py $*
-python join_files.py $*
+python join_files.py $* #output _data
+
+python preprocess_stats.py $* #input _data, output _data_pre
 
 source /home/commando/covid_19_rbkh/Preprocessing/text_to_x/bin/activate
-python semantic_scores.py $*
+python semantic_scores.py $* #input _data_pre, output _vis
 
 source /home/commando/maris/bin/activate
-python preprocess_stats.py $*
 python visualize.py $*

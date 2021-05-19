@@ -9,16 +9,37 @@ import text_to_x as ttx
 import pandas as pd
 import getopt, sys
 import re
+import glob
 
 def semantic_scores(data_prefix):
-    filename = "../" + data_prefix + "_data.csv"
-    sent_df = pd.read_csv(filename)[1:].rename(columns={"0":"created_at", "1":"id", "2":"text", "3":"search_keyword"})
+    filename = "../" + data_prefix + "_data_pre.csv"
+    sent_df = pd.read_csv(filename)
+    print(sent_df.head())
+    
+    sent_df["mentioneless_text"] = sent_df["mentioneless_text"].astype(str)
 
     # VADER SENTIMENT
     print("Conducting SA with VADER")
     print(sent_df.head())
     tts = ttx.TextToSentiment(lang='da', method="dictionary")
-    out = tts.texts_to_sentiment(list(sent_df['text'].values))
+    out = tts.texts_to_sentiment(list(sent_df['mentioneless_text'].values))
+    sent_df = pd.concat([sent_df, out], axis=1).dropna()
+    print("Joining SA results")
+
+    filename_out = "../" + data_prefix + "_vis.csv"
+    sent_df.to_csv(filename_out, index = False)
+    
+def semantic_scores_external(data_prefix):
+    filename = "../" + data_prefix + "_data_SA.csv"
+    sent_df = pd.read_csv(filename)[1:].rename(columns={"0":"created_at", "1":"id", "2":"text", "3":"search_keyword"})
+
+    # VADER SENTIMENT
+    print("Conducting SA with VADER")
+    print(sent_df.head())
+    sent_df["mentioneless_text"] = sent_df["mentioneless_text"].astype(str)
+    
+    tts = ttx.TextToSentiment(lang='da', method="dictionary")
+    out = tts.texts_to_sentiment(list(sent_df['mentioneless_text'].values))
     sent_df = pd.concat([sent_df, out], axis=1).dropna()
     print("Joining SA results")
 
@@ -74,3 +95,5 @@ if __name__ == "__main__":
     ############################
     print("---------SENTIMENT ANALYSIS----------")
     semantic_scores(data_prefix)
+
+    #semantic_scores_external(data_prefix)
