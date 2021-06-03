@@ -1,3 +1,6 @@
 *.png
 *.csv
 src/logs/*
+src/nohup.out
+.ipynb_checkpoints/
+explore_data.ipynb
