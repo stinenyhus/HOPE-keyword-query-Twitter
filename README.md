@@ -4,7 +4,10 @@
 Maris Sala
 
 ## Examples
-An example Jupyter Notebook visualizing the different parts of the code has been added.
+An example Jupyter Notebook visualizing the different parts of the code has been added. To check out how vaccines, AstraZeneca, Pfizer, and Moderna mentions are represented in Danish Twitter, check out ``notebooks/vaccines-az-pfizer-moderna.ipynb``
+
+![Example image](notebooks/example_vaccine_mentions_over_time.png)
+An example of how the mentions of vaccines overall and the 4 popular vaccines are represented in the Danish Twitter together with events from the media.
 
 ## Usage
 
