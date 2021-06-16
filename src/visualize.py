@@ -1,6 +1,5 @@
 import re
 import sys
-import spacy
 import getopt
 import warnings
 import itertools
@@ -22,18 +21,28 @@ from string import digits
 import nltk
 from nltk import bigrams
 
+import spacy
+from spacy.lang.da import Danish
+
 from wordcloud import WordCloud
 
+################################################################################################
+## PREPARE DATA FUNCTIONS
+################################################################################################
 
 sp = spacy.load('da_core_news_lg')
+nlp = Danish()
+tokenizer = nlp.tokenizer
 
 file = open("stop_words.txt","r+")
 stop_words = file.read().split()
 
-# Lemmatize stop words
-stops = " ".join(stop_words)
-stops = sp(stops)
+# Tokenize and Lemmatize stop words
+joint_stops = " ".join(stop_words)
+tokenized = tokenizer(joint_stops).doc.text
+stops = sp(tokenized)
 my_stop_words = [t.lemma_ for t in stops]
+my_stop_words = list(set(my_stop_words))
 
 def extract_hashtags(row):
     unique_hashtag_list = list(re.findall(r'#\S*\w', row["text"]))
@@ -65,31 +74,65 @@ def hashtag_per_row(data):
 
     return df
 
-def lemmas(row):
-    tweet = row["mentioneless_text"].lower()
+def remove_emoji(string):
+    emoji_pattern = re.compile("["
+                               u"\U0001F600-\U0001F64F"  # emoticons
+                               u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+                               u"\U0001F680-\U0001F6FF"  # transport & map symbols
+                               u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+                               u"\U00002500-\U00002BEF"  # chinese char
+                               u"\U00002702-\U000027B0"
+                               u"\U00002702-\U000027B0"
+                               u"\U000024C2-\U0001F251"
+                               u"\U0001f926-\U0001f937"
+                               u"\U00010000-\U0010ffff"
+                               u"\u2640-\u2642"
+                               u"\u2600-\u2B55"
+                               u"\u200d"
+                               u"\u23cf"
+                               u"\u23e9"
+                               u"\u231a"
+                               u"\ufe0f"  # dingbats
+                               u"\u3030"
+                               "]+", flags=re.UNICODE)
+    return emoji_pattern.sub(r'', string)
+
+def clean_tweet(tweet):
+    tweet = tweet.lower()
+    tweet = remove_emoji(tweet)
+    tweet = re.sub(r'@(\S*)\w', '', tweet) #mentions
+    tweet = re.sub(r'#\S*\w', '', tweet) # hashtags
+    # Remove URLs
+    url_pattern = re.compile(
+        r'(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})')
+    tweet = re.sub(url_pattern, '', tweet)
     tweet = tweet.translate(str.maketrans('', '', string.punctuation))
-    tweet = tweet.replace('”', '')
-    tweet = tweet.replace('“', '')
-    tweet = tweet.replace('»', '')
-    tweet = tweet.replace('…','')
-    
-    sentence = sp(tweet)
-    
-    lemmas = []
-    for word in sentence:
-        lemmas.append(word.lemma_)
-    
-    res = [x for x in lemmas if x not in my_stop_words]
-    hmm = ['    ','   ','  ',' ','', '🇩','🇰', '♂', '🤷']
-    res = [x for x in res if x not in hmm]
+    return tweet
+
+def join_tokens(row):
+    res = " ".join(row["tokens_list"])
     return res
+
+def lemmatize_tweet(tweet):
+    tweet = clean_tweet(tweet)
+    tokenized = tokenizer(tweet).doc.text
+    spacy_tokens = sp(tokenized)
+    lemmatized_tweet = [t.lemma_ for t in spacy_tokens]
+    
+    lemmatized_tweet = [x for x in lemmatized_tweet if x not in my_stop_words]
+    
+    hmm = ['   ','  ',' ','','♂','','❤','','🤷','”', '“', "'", '"', '’']
+    lemmatized_tweet = [x for x in lemmatized_tweet if x not in hmm]
+    lemmatized_tweet = [name for name in lemmatized_tweet if name.strip()]
+    
+    return lemmatized_tweet
 
 def join_tokens(row):
     res = " ".join(row["tokens_list"])
     return res
 
 def prep_word_freq(freq_df):
-    freq_df["tokens_list"] = freq_df.apply(lambda row: lemmas(row), axis = 1)
+    freq_df["tokens_list"] = freq_df.mentioneless_text.apply(lemmatize_tweet)
     freq_df["tokens_string"] = freq_df.apply(lambda row: join_tokens(row), axis = 1)
     texts = freq_df["tokens_string"]
     texts = ", ".join(texts)
@@ -106,6 +149,10 @@ def get_hashtag_frequencies(df):
     tweet_freq = pd.DataFrame({'nr_of_hashtags' : df.groupby(['hashtag']).size()}).reset_index()
     
     return tweet_freq
+
+################################################################################################
+## DATA VISUALIZATION FUNCTIONS
+################################################################################################
 
 def vis_keyword_mentions_freq(data_prefix, freq_df, title):
     print("Visualize keyword mentions frequency")
@@ -310,7 +357,7 @@ def vis_bigram_graph(data_prefix, d, graph_layout_number):
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
     palette = ["#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"]
-    
+
     # Create network plot 
     G = nx.Graph()
 
@@ -320,30 +367,31 @@ def vis_bigram_graph(data_prefix, d, graph_layout_number):
 
     fig, ax = plt.subplots(figsize=(11, 9))
 
-    pos = nx.spring_layout(G, k=graph_layout_number)
+    pos = nx.spring_layout(G, k=3)
 
     # Plot networks
     nx.draw_networkx(G, pos,
                      font_size=10,
                      width=3,
-                     edge_color= palette[0], #'red',
-                     node_color= palette[2], #'green',
+                     edge_color= "silver",
+                     node_color= palette[2],
+                     node_size = 1000,
                      with_labels = False,
                      ax=ax)
 
     # Create offset labels
     for key, value in pos.items():
-        x, y = value[0]+.135, value[1]+.065
+        x, y = value[0], value[1]
         ax.text(x, y,
                 s=key,
-                bbox=dict(facecolor= palette[7], #'red', 
-                          alpha=0.3), ## 0.5),
+                #bbox=dict(facecolor= palette[2],
+                #          alpha= 0.10),
                 horizontalalignment='center', fontsize=14)
 
 
     fig.patch.set_visible(False)
     ax.axis('off')
-    
+
     plot_name = "../fig/" + str(data_prefix) + "_bigram_graph_k" + str(graph_layout_number) + ".png"
     fig.savefig(plot_name, dpi=150)
     print("Save figure done\n------------------\n")
@@ -423,6 +471,11 @@ def visualize(data_prefix):
     k_numbers_to_try = [1,2,3,4,5]
     for k in k_numbers_to_try:
         vis_bigram_graph(data_prefix, d, graph_layout_number = k)
+    
+    
+    print(freq_df.head())
+    print(freq_df.columns)
+    freq_df.to_csv("../" + data_prefix + "_final.csv",index = False)
     
 
 if __name__ == "__main__":
