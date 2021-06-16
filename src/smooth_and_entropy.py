@@ -65,12 +65,21 @@ def gaussian_kernel(arr, sigma=False, fwhm=False):
         smoothed_vals[x_position] = sum(y_vals * kernel)
     return smoothed_vals
 
+def get_tweet_frequencies(df):
+    tweet_freq = pd.DataFrame({'nr_of_tweets' : df.groupby(['date']).size()}).reset_index()
+    freq_tweets = pd.merge(df, tweet_freq, how='left', on=['date'])#, 'id', 'created_at'])
+    return freq_tweets
+
 def apply_date_mask(df, from_date):
     mask = (df['date'] >= from_date)
     df = df.loc[mask]
     return df
 
 def center_compound(df):
+    print(df.head())
+    print("Sum compound ", sum(df["compound"]))
+    print("Len compound ", len(df["compound"]))
+    
     average_compound = sum(df["compound"]) / len(df["compound"])
     df["centered_compound"] = df["compound"] - average_compound
     return df
@@ -103,19 +112,37 @@ def center_entropy(df):
     df["centered_entropy"] = df["normalized_entropy"] - average_entropy
     return df
 
-def smooth_2000(df):
-    df["smooth_entropy"] = gaussian_kernel(df["entropy"], sigma = 1, fwhm = 2000)
-    df["smooth_compound"] = gaussian_kernel(df["centered_compound"], sigma = 1, fwhm = 2000)
+def smooth_2000(df, compound, nroftweets, small):
+    #df["s2000_entropy"] = gaussian_kernel(df["entropy"], sigma = 1, fwhm = 2000)
+    if compound:
+        if small:
+            df["s200_compound"] = gaussian_kernel(df["centered_compound"], sigma = 1, fwhm = 200)
+        else:
+            df["s2000_compound"] = gaussian_kernel(df["centered_compound"], sigma = 1, fwhm = 2000)
+    if nroftweets:
+        if small:
+            df["s200_nr_of_tweets"] = gaussian_kernel(df["nr_of_tweets"], sigma = 1, fwhm = 200)
+        else:
+            df["s2000_nr_of_tweets"] = gaussian_kernel(df["nr_of_tweets"], sigma = 1, fwhm = 2000)
     return df
 
-def smooth_5000(df):
-    df["smooth_entropy2"] = gaussian_kernel(df["entropy"], sigma = 1, fwhm = 5000)
-    df["smooth_compound2"] = gaussian_kernel(df["centered_compound"], sigma = 1, fwhm = 5000)
+def smooth_5000(df, compound, nroftweets, small):
+    #df["s5000_entropy"] = gaussian_kernel(df["entropy"], sigma = 1, fwhm = 5000)
+    if compound:
+        if small:
+            df["s500_compound"] = gaussian_kernel(df["centered_compound"], sigma = 1, fwhm = 500)
+        else:
+            df["s5000_compound"] = gaussian_kernel(df["centered_compound"], sigma = 1, fwhm = 5000)
+    if nroftweets:
+        if small:
+            df["s500_nr_of_tweets"] = gaussian_kernel(df["nr_of_tweets"], sigma = 1, fwhm = 500)
+        else:
+            df["s5000_nr_of_tweets"] = gaussian_kernel(df["nr_of_tweets"], sigma = 1, fwhm = 5000)
     return df
 
 ###########################################################
 
-def smooth_and_entropy(data_prefix, vis_file, from_date):
+def smooth_and_entropy(data_prefix, vis_file, from_date, compound, nroftweets, entropy, small):
     print("Read in data, prepare")
     df = pd.read_csv(vis_file)
     df = df.sort_values("created_at")
@@ -123,19 +150,38 @@ def smooth_and_entropy(data_prefix, vis_file, from_date):
     df["date"] = pd.to_datetime(df["created_at"], utc=True).dt.strftime('%Y-%m-%d')
     df["date"] = pd.to_datetime(df["date"])
     
+    #df = get_tweet_frequencies(df)
+    df["date"] = pd.to_datetime(df["date"])
+    
     df = apply_date_mask(df, from_date)
-    print("Center compound and entropy")
+    if len(df) < 1:
+        print("ERROR: Apply a from_date in the bash command with e.g. '-f 2021-01-01'.")
+    
+    print("Check for compound")
+    if 'compound' in df.columns:
+        print("Center compound and entropy")
+    else:
+        print("No compound")
+        ic(df.head())
+        ic(df.columns)
+    
     df = center_compound(df)
     df = get_entropy(df)
     df = center_entropy(df)
     
     print("START SMOOTHING")
-    df = smooth_2000(df)
+    df = smooth_2000(df, compound, nroftweets, small)
     print("Smooth 2000 DONE")
-    df = smooth_5000(df)
+    df = smooth_5000(df, compound, nroftweets, small)
     print("Smooth 5000 DONE")
+
+    comment = []
+    if compound:
+        comment.append("_compound")
+    if nroftweets:
+        comment.append("_nroftweets")
     
-    outfile_name = "../" + data_prefix + "_smoothed.csv"
+    outfile_name = "../" + data_prefix + "_smoothed" + "".join(comment) + ".csv"
     df.to_csv(outfile_name, index=False)
     
     del df
@@ -147,10 +193,11 @@ def main(argv):
     from_date = '' 
     to_date = ''
     test_limit = '' # this is so that it's possible to test the system on just one day/month of data
+    small = '' # small or not :))))) (vaccines or not)
     try:
-        opts, args = getopt.getopt(argv,"hk:f:t:l:")
+        opts, args = getopt.getopt(argv,"hk:f:t:l:s:")
     except getopt.GetoptError:
-        print('test.py -k <keyword1,keyword2> -f <2020-01-20> -t <2020-12-31> -l <20200101>')
+        print('test.py -k <keyword1,keyword2> -f <2020-01-20> -t <2020-12-31> -l <20200101> -s <True>')
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
@@ -167,12 +214,15 @@ def main(argv):
         elif opt in "-l":
             test_limit = arg
             print('TESTING: ', test_limit)
+        elif opt in "-s":
+            small = arg
+            print("Small dataset: ", small)
     print('Input keywords are ', keywords)
-    return keywords, test_limit, from_date#, to_date - these are not necessary to output for extract_data.py
+    return keywords, test_limit, from_date, small#, to_date - these are not necessary to output for extract_data.py
 
 if __name__ == "__main__":
     
-    keywords, test_limit, from_date = main(sys.argv[1:])
+    keywords, test_limit, from_date, small = main(sys.argv[1:])
     ic(main(sys.argv[1:]))
     ori_keyword_list = keywords.split(",")
     
@@ -188,8 +238,8 @@ if __name__ == "__main__":
 
     data_prefix = keyword_list[0]
 
-    vis_file = "../" + data_prefix + "_vis.csv"
+    vis_file = "../" + data_prefix + "_final.csv"
 
     ###############################
     print("--------SMOOTHING PIPELINE START--------")
-    smooth_and_entropy(data_prefix, vis_file, from_date)
+    smooth_and_entropy(data_prefix, vis_file, from_date, compound = True, nroftweets = True, entropy=False, small = small)
