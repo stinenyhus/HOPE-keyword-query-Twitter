@@ -8,6 +8,10 @@ import getopt, sys
 import re
 import glob
 
+########################################################################################################################
+##     DEFINE FUNCTIONS
+########################################################################################################################
+
 def remove_emoji(string):
     emoji_pattern = re.compile("["
                                u"\U0001F600-\U0001F64F"  # emoticons
@@ -56,33 +60,9 @@ def remove_quote_tweets(df):
     df = df[df["dupe50"] == False].reset_index()
     return df
 
-def main(argv):
-    keywords = ''
-    from_date = '' 
-    to_date = ''
-    test_limit = '' # this is so that it's possible to test the system on just one day/month of data
-    try:
-        opts, args = getopt.getopt(argv,"hk:f:t:l:")
-    except getopt.GetoptError:
-        print('test.py -k <keyword1,keyword2> -f <2020-01-20> -t <2020-12-31> -l <20200101>')
-        sys.exit(2)
-    for opt, arg in opts:
-        if opt == '-h':
-            print('test.py -keywords <keyword1,keyword2> -from_date <2020-01-20> -to_date <2020-12-31> -test_limit <20200101>')
-            sys.exit()
-        elif opt in "-k":
-            keywords = arg
-        elif opt in "-f":
-            from_date = arg
-            print('Date specifics: from ', from_date)
-        elif opt in "-t":
-            to_date = arg
-            print(' to ', to_date)
-        elif opt in "-l":
-            test_limit = arg
-            print('TESTING: ', test_limit)
-    print('Input keywords are ', keywords)
-    return keywords, from_date, to_date#, test_limit - this is not necessary to output for preprocess_stats.py
+########################################################################################################################
+##     MAIN FUNCTION
+########################################################################################################################
 
 def preprocess_stats(data_prefix, from_date, to_date):
     filename = "../" + data_prefix + "_data.csv"
@@ -110,7 +90,8 @@ def preprocess_stats(data_prefix, from_date, to_date):
     
     out_filename = "../" + data_prefix + "_data_pre.csv"
     df.to_csv(out_filename, index=False)
-    
+
+# Legacy function
 def preprocess_stats_external(filename):
     df = pd.read_json(filename, lines = True)
     ic(df.head())#[1:].rename(columns={"0":"created_at", "1":"id", "2":"text", "3":"search_keyword"})
@@ -135,6 +116,46 @@ def preprocess_stats_external(filename):
         
     out_filename = "../" + data_prefix + "_data.csv"
     df.to_csv(out_filename, index=False)
+    
+########################################################################################################################
+##     DEFINE INPUT
+########################################################################################################################
+
+def main(argv):
+    keywords = ''
+    from_date = '' 
+    to_date = ''
+    test_limit = '' # this is so that it's possible to test the system on just one day/month of data
+    small = ''
+    try:
+        opts, args = getopt.getopt(argv,"hk:f:t:l:s:")
+    except getopt.GetoptError:
+        print('test.py -k <keyword1,keyword2> -f <2020-01-20> -t <2020-12-31> -l <20200101>')
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-h':
+            print('test.py -keywords <keyword1,keyword2> -from_date <2020-01-20> -to_date <2020-12-31> -test_limit <20200101>')
+            sys.exit()
+        elif opt in "-k":
+            keywords = arg
+        elif opt in "-f":
+            from_date = arg
+            print('Date specifics: from ', from_date)
+        elif opt in "-t":
+            to_date = arg
+            print(' to ', to_date)
+        elif opt in "-l":
+            test_limit = arg
+            print('TESTING: ', test_limit)
+        elif opt in "-s":
+            small = arg
+            print('Small: ', small)
+    print('Input keywords are ', keywords)
+    return keywords, from_date, to_date
+
+########################################################################################################################
+##     INPUT
+########################################################################################################################
     
 if __name__ == "__main__":
     

@@ -14,6 +14,10 @@ import os.path
 from os import path
 from icecream import ic
 
+########################################################################################################################
+##     DEFINE FUNCTIONS
+########################################################################################################################
+
 def retrieve_retweets(row):
     if re.match("^RT", row):
         RT = True
@@ -38,7 +42,6 @@ def extract_keywords(row, keyword_list):
         row["text"] = row["text"].astype(str)
     tweet = row["text"].lower()
     res = [ele for ele in keyword_list if(ele in tweet)] 
-    #res = res.translate(str.maketrans('', '', string.punctuation))
     return res
 
 def remove_date_dash(text):
@@ -86,7 +89,6 @@ def ignore_dates_less_than(output_name):
     
     # Sort the dates
     dates_to_ignore = dates.apply(remove_date_dash).to_list()
-    
     maximum_date = remove_date_dash(max(dates))
         
     files_to_ignore = []
@@ -101,7 +103,11 @@ def ignore_dates_less_than(output_name):
             
     return mega_path
 
-def extract_data(keyword_list, data_prefix, mega_path, from_date):
+########################################################################################################################
+##     MAIN FUNCTION
+########################################################################################################################
+
+def extract_data(keyword_list, data_prefix, mega_path, from_date, to_date):
     print("START data extraction for keywords: ", keyword_list)
     print("---")
     
@@ -151,14 +157,19 @@ def extract_data(keyword_list, data_prefix, mega_path, from_date):
             print("Not enough data")
         print("-------------------------------------------\n")
         del df
+        
+########################################################################################################################
+##     DEFINE INPUT
+########################################################################################################################
 
 def main(argv):
     keywords = ''
     from_date = '' 
     to_date = ''
     test_limit = '' # this is so that it's possible to test the system on just one day/month of data
+    small = ''
     try:
-        opts, args = getopt.getopt(argv,"hk:f:t:l:")
+        opts, args = getopt.getopt(argv,"hk:f:t:l:s:")
     except getopt.GetoptError:
         print('test.py -k <keyword1,keyword2> -f <2020-01-20> -t <2020-12-31> -l <20200101>')
         sys.exit(2)
@@ -177,12 +188,19 @@ def main(argv):
         elif opt in "-l":
             test_limit = arg
             print('TESTING: ', test_limit)
+        elif opt in "-s":
+            small = arg
+            print('Small: ', small)
     print('Input keywords are ', keywords)
-    return keywords, test_limit, from_date#, to_date - these are not necessary to output for extract_data.py
+    return keywords, test_limit, from_date, to_date
+
+########################################################################################################################
+##     INPUT
+########################################################################################################################
 
 if __name__ == "__main__":
     
-    keywords, test_limit, from_date = main(sys.argv[1:])
+    keywords, test_limit, from_date, to_date = main(sys.argv[1:])
     ic(main(sys.argv[1:]))
     ori_keyword_list = keywords.split(",")
     
@@ -203,6 +221,58 @@ if __name__ == "__main__":
         ic(pathname)
         mega_path = glob.glob(pathname)
         ic(mega_path)
+    elif (len(from_date) > 1) & (len(to_date) > 1):
+        ic(from_date, to_date)
+        ic(type(from_date), type(to_date))
+        pathname = '/data/001_twitter_hope/preprocessed/da/*.ndjson'
+        
+        min_date = remove_date_dash(from_date)
+        max_date = remove_date_dash(to_date)
+        mega_path = glob.glob(pathname)
+        
+        print(min_date, max_date)
+        
+        files_to_ignore = []
+        for file in mega_path:
+            date = re.findall(r'\/data\/001_twitter_hope\/preprocessed\/da\/td_(\d*)', file)[0]
+            if (date < min_date) or (date > max_date):
+                files_to_ignore.append(file)
+
+        ic(files_to_ignore)
+        
+        for element in files_to_ignore:
+            if element in mega_path:
+                mega_path.remove(element)
+                
+    elif len(from_date) > 1:
+        pathname = '/data/001_twitter_hope/preprocessed/da/*.ndjson'
+        min_date = remove_date_dash(from_date)
+        mega_path = glob.glob(pathname)
+        
+        files_to_ignore = []
+        for file in mega_path:
+            date = re.findall(r'\/data\/001_twitter_hope\/preprocessed\/da\/td_(\d*)', file)[0]
+            if date < min_date:
+                files_to_ignore.append(file)
+
+        for element in files_to_ignore:
+            if element in mega_path:
+                mega_path.remove(element)
+                
+    elif len(to_date) > 1:
+        pathname = '/data/001_twitter_hope/preprocessed/da/*.ndjson'
+        max_date = remove_date_dash(to_date)
+        mega_path = glob.glob(pathname)
+        
+        files_to_ignore = []
+        for file in mega_path:
+            date = re.findall(r'\/data\/001_twitter_hope\/preprocessed\/da\/td_(\d*)', file)[0]
+            if date > max_date:
+                files_to_ignore.append(file)
+
+        for element in files_to_ignore:
+            if element in mega_path:
+                mega_path.remove(element)
     else:
         # Runs through all the files here, date does not matter
         pathname = '/data/001_twitter_hope/preprocessed/da/*.ndjson'
@@ -210,4 +280,4 @@ if __name__ == "__main__":
 
     ###############################
     print("--------EXTRACT DATA--------")
-    extract_data(keyword_list, data_prefix, mega_path, from_date)
+    extract_data(keyword_list, data_prefix, mega_path, from_date, to_date)

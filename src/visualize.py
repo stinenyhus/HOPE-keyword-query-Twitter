@@ -127,10 +127,6 @@ def lemmatize_tweet(tweet):
     
     return lemmatized_tweet
 
-def join_tokens(row):
-    res = " ".join(row["tokens_list"])
-    return res
-
 def prep_word_freq(freq_df):
     freq_df["tokens_list"] = freq_df.mentioneless_text.apply(lemmatize_tweet)
     freq_df["tokens_string"] = freq_df.apply(lambda row: join_tokens(row), axis = 1)
@@ -154,69 +150,60 @@ def get_hashtag_frequencies(df):
 ## DATA VISUALIZATION FUNCTIONS
 ################################################################################################
 
-def vis_keyword_mentions_freq(data_prefix, freq_df, title):
-    print("Visualize keyword mentions frequency")
+def set_base_plot_settings(fontsize, if_palette):
+    matplotlib.rc('ytick', labelsize=fontsize)
+    matplotlib.rc('xtick', labelsize=fontsize)
+    themes.theme_minimal(grid=False, ticks=False, fontsize=fontsize)
+    a4_dims = (25,15)
     
-    matplotlib.rc('ytick', labelsize=20)
-    matplotlib.rc('xtick', labelsize=20)
-    themes.theme_minimal(grid=False, ticks=False, fontsize=18)
-    a4_dims = (25,15) #(11.7, 8.27)
+    if if_palette:
+        #          0 black      1 orange  2 L blue   3 green    4 L orange  5 D blue  6 D orange 7 purple
+        palette = ["#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"]
+    else:
+        palette = 0
+    
     fig, (ax1) = plt.subplots(1,1, figsize=a4_dims)
     sns.set(font_scale = 2)
+
+    return fig, ax1, palette
+
+def set_late_plot_settings(if_dates):
+    ax1.set(xlabel="", ylabel = "")
+    ax1.xaxis.get_label().set_fontsize(40)
+    ax1.yaxis.get_label().set_fontsize(40)
+
+    ax1.grid(color='darkgrey', linestyle='-', linewidth=0.5, which= "both")
+    if if_dates:
+        # Define the date format
+        ax1.xaxis_date()
+        date_form = mdates.DateFormatter("%d-%b")
+        ax1.xaxis.set_major_formatter(date_form)
+
+    ax1.set(ylim=(0, None))
+    return fig, ax1
+
+def set_late_barplot_settings():
+    ax1.set(xlabel="", ylabel = "")
+    ax1.xaxis.get_label().set_fontsize(40)
+    ax1.yaxis.get_label().set_fontsize(40)
+    return fig, ax1
+
+def vis_keyword_mentions_freq(data_prefix, freq_df, title, ysmooth):
+    print("Visualize keyword mentions frequency")
     
-    # Color blind friendly colors
-    palette = ["#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"]
+    fig, ax1, palette = set_base_plot_settings(fontsize=30, if_palette = True)
 
     ax1 = sns.lineplot(x="date", y="nr_of_tweets", 
                       palette = palette[0], 
                         linewidth = 3, data = freq_df)
-    """
-    ax1 = sns.regplot(
-        data=freq_df,
-        x='date_ordinal',
-        y='nr_of_tweets',
-        color = palette[3],
-        ci=False
-        #y_jitter=.5
-    )
-    """
-    
-    ax1.set(xlabel="", ylabel = "")
-    ax1.xaxis.get_label().set_fontsize(40)
-    ax1.yaxis.get_label().set_fontsize(40)
-    ax1.grid(color='grey', linestyle='-', linewidth=0.5, which= "both")
+    if len(ysmooth)>1:
+        ax1 = sns.lineplot(x="date", y=ysmooth, 
+                  color = palette[5], 
+                   label = "Smoothed",
+                     linewidth = 5, data = df)
+        
+    fig, ax1 = set_late_plot_settings(if_dates = True)
 
-    """
-    plt.axvline(dt.datetime(2020, 12, 21), color=palette[5])
-    plt.text(x = dt.datetime(2020, 12, 22), # x-coordinate position of data label, adjusted to be 3 right of the data point
-     y = 81, # y-coordinate position of data label, to take max height 
-     s = 'Flight ban from UK', # data label
-     color = palette[5])
-
-    plt.axvline(dt.datetime(2020, 12, 23), color=palette[5])
-    plt.text(x = dt.datetime(2020, 12, 24), # x-coordinate position of data label, adjusted to be 3 right of the data point
-     y = 22, # y-coordinate position of data label, to take max height 
-     s = 'Flight ban from UK extended', # data label
-     color = palette[5])
-
-    plt.axvline(dt.datetime(2021, 1, 5), color=palette[5])
-    plt.text(x = dt.datetime(2021, 1, 6), # x-coordinate position of data label, adjusted to be 3 right of the data point
-     y = 142, # y-coordinate position of data label, to take max height 
-     s = 'High alert, new 5m distance rules', # data label
-     color = palette[5])
-
-    plt.axvline(dt.datetime(2021, 1, 13), color=palette[5])
-    plt.text(x = dt.datetime(2021, 1, 14), # x-coordinate position of data label, adjusted to be 3 right of the data point
-     y = 110, # y-coordinate position of data label, to take max height 
-     s = 'Lockdown extended', # data label
-     color = palette[5])
-    """
-    # Define the date format
-    ax1.xaxis_date()
-    date_form = mdates.DateFormatter("%d-%m")
-    ax1.xaxis.set_major_formatter(date_form)
-
-    fig.suptitle(title, size = "40")
     plot_name = "../fig/" + data_prefix + "_freq_mentions.png"
     fig.savefig(plot_name)
     print("Save figure done\n------------------\n")
@@ -395,36 +382,12 @@ def vis_bigram_graph(data_prefix, d, graph_layout_number):
     plot_name = "../fig/" + str(data_prefix) + "_bigram_graph_k" + str(graph_layout_number) + ".png"
     fig.savefig(plot_name, dpi=150)
     print("Save figure done\n------------------\n")
-    
-def main(argv):
-    keywords = ''
-    from_date = '' 
-    to_date = ''
-    test_limit = '' # this is so that it's possible to test the system on just one day/month of data
-    try:
-        opts, args = getopt.getopt(argv,"hk:f:t:l:")
-    except getopt.GetoptError:
-        print('test.py -k <keyword1,keyword2> -f <2020-01-20> -t <2020-12-31> -l <20200101>')
-        sys.exit(2)
-    for opt, arg in opts:
-        if opt == '-h':
-            print('test.py -keywords <keyword1,keyword2> -from_date <2020-01-20> -to_date <2020-12-31> -test_limit <20200101>')
-            sys.exit()
-        elif opt in "-k":
-            keywords = arg
-        elif opt in "-f":
-            from_date = arg
-            print('Date specifics: from ', from_date)
-        elif opt in "-t":
-            to_date = arg
-            print(' to ', to_date)
-        elif opt in "-l":
-            test_limit = arg
-            print('TESTING: ', test_limit)
-    print('Input keywords are ', keywords)
-    return keywords, from_date, to_date#, test_limit - this is not necessary to output for preprocess_stats.py
 
-def visualize(data_prefix):
+########################################################################################################################
+##     MAIN FUNCTION
+########################################################################################################################
+
+def visualize(data_prefix, ysmooth):
     filename = "../" + data_prefix + "_vis.csv"
     df = pd.read_csv(filename)
     
@@ -438,7 +401,7 @@ def visualize(data_prefix):
 
     # Visualize
     title = "Mentions of: " + str(data_prefix)
-    vis_keyword_mentions_freq(data_prefix, freq_df, title)
+    vis_keyword_mentions_freq(data_prefix, freq_df, title, ysmooth)
     
     freq_hashtags = get_hashtag_frequencies(freq_df)
     hash_df = freq_hashtags.sort_values(by=['nr_of_hashtags'], ascending=False)
@@ -477,6 +440,45 @@ def visualize(data_prefix):
     print(freq_df.columns)
     freq_df.to_csv("../" + data_prefix + "_final.csv",index = False)
     
+########################################################################################################################
+##     DEFINE INPUT
+########################################################################################################################
+
+def main(argv):
+    keywords = ''
+    from_date = '' 
+    to_date = ''
+    test_limit = '' # this is so that it's possible to test the system on just one day/month of data
+    small = ''
+    try:
+        opts, args = getopt.getopt(argv,"hk:f:t:l:s:")
+    except getopt.GetoptError:
+        print('test.py -k <keyword1,keyword2> -f <2020-01-20> -t <2020-12-31> -l <20200101>')
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-h':
+            print('test.py -keywords <keyword1,keyword2> -from_date <2020-01-20> -to_date <2020-12-31> -test_limit <20200101>')
+            sys.exit()
+        elif opt in "-k":
+            keywords = arg
+        elif opt in "-f":
+            from_date = arg
+            print('Date specifics: from ', from_date)
+        elif opt in "-t":
+            to_date = arg
+            print(' to ', to_date)
+        elif opt in "-l":
+            test_limit = arg
+            print('TESTING: ', test_limit)
+        elif opt in "-s":
+            small = arg
+            print('Small: ', small)
+    print('Input keywords are ', keywords)
+    return keywords, from_date, to_date
+
+########################################################################################################################
+##     INPUT
+########################################################################################################################
 
 if __name__ == "__main__":
     
@@ -495,8 +497,11 @@ if __name__ == "__main__":
 
     data_prefix = keyword_list[0]
     
+    ## conditional for ysmooth depending on small
+    ysmooth = False
+    
     ###############################
     print("---VISUALIZE---")
     print("START loading data: ", data_prefix)
     
-    visualize(data_prefix)
+    visualize(data_prefix, ysmooth)

@@ -18,6 +18,10 @@ import os
 import os.path
 from os import path
 
+########################################################################################################################
+##     DEFINE FUNCTIONS
+########################################################################################################################
+
 def entropy2(labels, base=None):
     """ Computes entropy of label distribution. """
 
@@ -140,7 +144,9 @@ def smooth_5000(df, compound, nroftweets, small):
             df["s5000_nr_of_tweets"] = gaussian_kernel(df["nr_of_tweets"], sigma = 1, fwhm = 5000)
     return df
 
-###########################################################
+########################################################################################################################
+##     MAIN FUNCTION
+########################################################################################################################
 
 def smooth_and_entropy(data_prefix, vis_file, from_date, compound, nroftweets, entropy, small):
     print("Read in data, prepare")
@@ -186,18 +192,20 @@ def smooth_and_entropy(data_prefix, vis_file, from_date, compound, nroftweets, e
     
     del df
 
-###########################################################
+########################################################################################################################
+##     DEFINE INPUT
+########################################################################################################################
 
 def main(argv):
     keywords = ''
     from_date = '' 
     to_date = ''
     test_limit = '' # this is so that it's possible to test the system on just one day/month of data
-    small = '' # small or not :))))) (vaccines or not)
+    small = ''
     try:
         opts, args = getopt.getopt(argv,"hk:f:t:l:s:")
     except getopt.GetoptError:
-        print('test.py -k <keyword1,keyword2> -f <2020-01-20> -t <2020-12-31> -l <20200101> -s <True>')
+        print('test.py -k <keyword1,keyword2> -f <2020-01-20> -t <2020-12-31> -l <20200101>')
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
@@ -216,9 +224,13 @@ def main(argv):
             print('TESTING: ', test_limit)
         elif opt in "-s":
             small = arg
-            print("Small dataset: ", small)
+            print('Small: ', small)
     print('Input keywords are ', keywords)
-    return keywords, test_limit, from_date, small#, to_date - these are not necessary to output for extract_data.py
+    return keywords, test_limit, from_date, small
+
+########################################################################################################################
+##     INPUT
+########################################################################################################################
 
 if __name__ == "__main__":
     

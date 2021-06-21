@@ -10,4 +10,5 @@ source /home/commando/covid_19_rbkh/Preprocessing/text_to_x/bin/activate
 python semantic_scores.py $* #input _data_pre, output _vis
 
 source /home/commando/maris/bin/activate
+python smooth_and_entropy.py $*
 python visualize.py $*

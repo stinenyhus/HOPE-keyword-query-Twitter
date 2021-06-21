@@ -9,7 +9,9 @@ import os, shutil
 import os.path
 from os import path
 
-### Define Functions ###
+########################################################################################################################
+##     DEFINE FUNCTIONS
+########################################################################################################################
 
 def get_df(filenames):
     df = pd.read_csv(filenames[0], header = None, sep=",")
@@ -38,6 +40,20 @@ def clean_dates(df):
     df.iloc[:,0] = pd.to_datetime(df.iloc[:,0], utc=True).dt.strftime('%Y-%m-%d %H:%M:%S')
     return df
 
+def empty_data_folder(temp_path):
+    print("Delete contents of tmp_*/")
+
+    try:
+        shutil.rmtree(temp_path)
+    except OSError:
+        print ("Deletion of the directory %s failed" % temp_path)
+    else:
+        print ("Successfully deleted the directory %s" % temp_path)
+
+########################################################################################################################
+##     MAIN FUNCTION
+########################################################################################################################
+        
 def join_files(temp_path,data_prefix):
     filename = temp_path + "*.csv"
     filenames = glob.glob(filename)
@@ -56,23 +72,18 @@ def join_files(temp_path,data_prefix):
     df.to_csv(output_name, index=False)
     del df
 
-def empty_data_folder(temp_path):
-    print("Delete contents of tmp_*/")
-
-    try:
-        shutil.rmtree(temp_path)
-    except OSError:
-        print ("Deletion of the directory %s failed" % temp_path)
-    else:
-        print ("Successfully deleted the directory %s" % temp_path)
+########################################################################################################################
+##     DEFINE INPUT
+########################################################################################################################
     
 def main(argv):
     keywords = ''
     from_date = '' 
     to_date = ''
     test_limit = '' # this is so that it's possible to test the system on just one day/month of data
+    small = ''
     try:
-        opts, args = getopt.getopt(argv,"hk:f:t:l:")
+        opts, args = getopt.getopt(argv,"hk:f:t:l:s:")
     except getopt.GetoptError:
         print('test.py -k <keyword1,keyword2> -f <2020-01-20> -t <2020-12-31> -l <20200101>')
         sys.exit(2)
@@ -91,8 +102,15 @@ def main(argv):
         elif opt in "-l":
             test_limit = arg
             print('TESTING: ', test_limit)
+        elif opt in "-s":
+            small = arg
+            print('Small: ', small)
     print('Input keywords are ', keywords)
-    return keywords#, test_limit, from_date, to_date - these are not necessary to output for join_files.py
+    return keywords
+
+########################################################################################################################
+##     INPUT
+########################################################################################################################
 
 if __name__ == "__main__":
     
