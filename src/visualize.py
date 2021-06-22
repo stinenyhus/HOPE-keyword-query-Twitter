@@ -150,6 +150,7 @@ def get_hashtag_frequencies(df):
 ## DATA VISUALIZATION FUNCTIONS
 ################################################################################################
 
+##### --- BASE PLOTTING SETTING --- #####
 def set_base_plot_settings(fontsize, if_palette):
     matplotlib.rc('ytick', labelsize=fontsize)
     matplotlib.rc('xtick', labelsize=fontsize)
@@ -188,116 +189,110 @@ def set_late_barplot_settings():
     ax1.yaxis.get_label().set_fontsize(40)
     return fig, ax1
 
-def vis_keyword_mentions_freq(data_prefix, freq_df, title, ysmooth):
+##### --- VISUALIZATION FUNCTIONS --- #####
+def vis_keyword_mentions_freq(data_prefix, freq_df, title, ysmooth_nr1, ysmooth_nr2):
     print("Visualize keyword mentions frequency")
-    
     fig, ax1, palette = set_base_plot_settings(fontsize=30, if_palette = True)
 
     ax1 = sns.lineplot(x="date", y="nr_of_tweets", 
                       palette = palette[0], 
                         linewidth = 3, data = freq_df)
-    if len(ysmooth)>1:
-        ax1 = sns.lineplot(x="date", y=ysmooth, 
+
+    ax1 = sns.lineplot(x="date", y=ysmooth_nr1, 
                   color = palette[5], 
                    label = "Smoothed",
                      linewidth = 5, data = df)
         
     fig, ax1 = set_late_plot_settings(if_dates = True)
 
-    plot_name = "../fig/" + data_prefix + "_freq_mentions.png"
-    fig.savefig(plot_name)
-    print("Save figure done\n------------------\n")
+    plot_name = "../fig/" + data_prefix + ysmooth_nr1 + "_freq_mentions.png"
+    fig.savefig(plot_name, bbox_inches='tight')
+    
+    fig, ax1, palette = set_base_plot_settings(fontsize=30, if_palette = True)
 
+    ax1 = sns.lineplot(x="date", y="nr_of_tweets", 
+                      palette = palette[0], 
+                        linewidth = 3, data = freq_df)
+
+    ax1 = sns.lineplot(x="date", y=ysmooth_nr2, 
+                  color = palette[5], 
+                   label = "Smoothed",
+                     linewidth = 5, data = df)
+        
+    fig, ax1 = set_late_plot_settings(if_dates = True)
+
+    plot_name = "../fig/" + data_prefix + ysmooth_nr2 + "_freq_mentions.png"
+    fig.savefig(plot_name, bbox_inches='tight')
+    print("Save figure done\n------------------\n")
+    
 def vis_hashtag_freq(data_prefix, df, nr_of_hashtags):
     print("Visualize hashtag frequency")
-    themes.theme_minimal(grid=False, ticks=False, fontsize=18)
-    a4_dims = (25,15)
-    
-    fig, (ax) = plt.subplots(1,1, figsize=a4_dims)
-    sns.set(font_scale = 2)
+    fig, ax1, palette = set_base_plot_settings(fontsize=30, if_palette = False)
     
     df0 = df.nlargest(nr_of_hashtags, columns=['nr_of_hashtags'])
     nr_hash = len(df0["hashtag"].unique())
-
-    themes.theme_minimal(grid=False, ticks=False, fontsize=18)
     palette = sns.color_palette("inferno", nr_hash)
 
-    ax = sns.barplot(y="hashtag", x="nr_of_hashtags", palette = palette, data = df0)
+    ax1 = sns.barplot(y="hashtag", x="nr_of_hashtags", palette = palette, data = df0)
 
-    ax.set(xlabel="Count", ylabel = "Hashtag")
-    ax.xaxis.get_label().set_fontsize(25)
-    ax.yaxis.get_label().set_fontsize(25)
-    ax.axes.set_title("Most frequent hashtags",fontsize=30)
-
-    plt.xticks(fontsize=20)
-    plt.yticks(fontsize=15)
+    fig, ax1 = set_late_barplot_settings()
 
     plot_name = "../fig/" + data_prefix + "_frequent_hashtags.png"
-    fig.savefig(plot_name)
+    fig.savefig(plot_name, bbox_inches='tight')
     print("Save figure done\n------------------\n")
     
-def vis_sentiment_compound(data_prefix, clean_df):
+def vis_sentiment_compound(data_prefix, df, ysmooth_c1, ysmooth_c2):
     print("Visualize sentiment compound")
-    matplotlib.rc('ytick', labelsize=20)
-    matplotlib.rc('xtick', labelsize=20)
-    themes.theme_minimal(grid=False, ticks=False, fontsize=18)
-    a4_dims = (25,15) #(11.7, 8.27)
-    palette = ["#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"]
+    fig, ax1, palette = set_base_plot_settings(fontsize=30, if_palette = True)
 
-    fig, (ax1) = plt.subplots(1,1, figsize=a4_dims)
-    sns.set(font_scale = 2)
-    ax1 = sns.lineplot(x="date", y="compound", 
+    ax1 = sns.lineplot(x="date", y="centered_compound", 
                        label="Daily", color = palette[2],
-                         linewidth = 3, data = clean_df)
+                         linewidth = 3, data = df)
 
-    ax1 = sns.lineplot(x="date", y="compound_7day_ave", 
+    ax1 = sns.lineplot(x="date", y=ysmooth_c1, 
                        label="7 Day Average", color = palette[5],
-                         linewidth = 5, data = clean_df)
+                         linewidth = 5, data = df)
 
-    ax1.set(xlabel="", ylabel = "")
-    ax1.xaxis.get_label().set_fontsize(40)
-    ax1.yaxis.get_label().set_fontsize(40)
-
-    ax1.grid(color='grey', linestyle='-', linewidth=0.5, which= "both")
-
-    # Define the date format
-    ax1.xaxis_date()
-    date_form = mdates.DateFormatter("%d-%m")
-    ax1.xaxis.set_major_formatter(date_form)
-
-    figtitle = "Sentiment analysis: Compound scores of " + data_prefix
-    fig.suptitle(figtitle, size = "40")
-
+    fig, ax1 = set_late_plot_settings(if_dates = True, if_bg = False)
     ax1.set(ylim=(-1, 1))
 
-    plot_name = "../fig/" + data_prefix + "_sentiment_compound.png"
-    fig.savefig(plot_name)
+    plot_name = "../fig/" + data_prefix + ysmooth_c1 + "_sentiment_compound.png"
+    fig.savefig(plot_name, bbox_inches='tight')
+    
+    
+    fig, ax1, palette = set_base_plot_settings(fontsize=30, if_palette = True)
+
+    ax1 = sns.lineplot(x="date", y="centered_compound", 
+                       label="Daily", color = palette[2],
+                         linewidth = 3, data = df)
+
+    ax1 = sns.lineplot(x="date", y=ysmooth_c2, 
+                       label="7 Day Average", color = palette[5],
+                         linewidth = 5, data = df)
+
+    fig, ax1 = set_late_plot_settings(if_dates = True, if_bg = False)
+    ax1.set(ylim=(-1, 1))
+
+    plot_name = "../fig/" + data_prefix + ysmooth_c1 + "_sentiment_compound.png"
+    fig.savefig(plot_name, bbox_inches='tight')
     print("Save figure done\n------------------\n")
 
 def vis_word_freq(data_prefix, word_freq, nr_of_words):
     print("Visualize word frequency")
-    a4_dims = (25,15)
-    fig, (ax) = plt.subplots(1,1, figsize=a4_dims)
-    sns.set(font_scale = 2)
+    
+    fig, ax1, palette = set_base_plot_settings(fontsize=30, if_palette = False)
     
     df0 = word_freq.nlargest(nr_of_words, columns=['Frequency'])
     nr_hash = len(df0["Word"].unique())
 
-    themes.theme_minimal(grid=False, ticks=False, fontsize=18)
     palette = sns.color_palette("Blues_r", nr_hash)
 
-    ax = sns.barplot(y="Word", x="Frequency", palette = palette, data = df0)
+    ax1 = sns.barplot(y="Word", x="Frequency", palette = palette, data = df0)
 
-    ax.set(xlabel="Count", ylabel = "Word")
-    ax.xaxis.get_label().set_fontsize(25)
-    ax.yaxis.get_label().set_fontsize(25)
-    ax.axes.set_title("Most frequent words",fontsize=30)
-
-    plt.xticks(fontsize=20)
-    plt.yticks(fontsize=15)
+    fig, ax1 = set_late_barplot_settings()
 
     plot_name = "../fig/" + data_prefix + "_word_frequency.png"
-    fig.savefig(plot_name)
+    fig.savefig(plot_name, bbox_inches='tight')
     print("Save figure done\n------------------\n")
     
 def vis_word_cloud(data_prefix, wordcloud):
@@ -307,7 +302,7 @@ def vis_word_cloud(data_prefix, wordcloud):
     # No axis details
     plt.axis("off");
     plot_name = "../fig/" + data_prefix + "_word_cloud.png"
-    plt.savefig(plot_name)
+    plt.savefig(plot_name, bbox_inches='tight')
     
 # Aggregate a frequency DF
 def get_tweet_frequencies(df):
@@ -380,42 +375,41 @@ def vis_bigram_graph(data_prefix, d, graph_layout_number):
     ax.axis('off')
 
     plot_name = "../fig/" + str(data_prefix) + "_bigram_graph_k" + str(graph_layout_number) + ".png"
-    fig.savefig(plot_name, dpi=150)
+    fig.savefig(plot_name, dpi=150, bbox_inches='tight')
     print("Save figure done\n------------------\n")
 
 ########################################################################################################################
 ##     MAIN FUNCTION
 ########################################################################################################################
 
-def visualize(data_prefix, ysmooth):
+def visualize(data_prefix, ysmooth_nr1, ysmooth_nr2, ysmooth_c1, ysmooth_c2):
     filename = "../" + data_prefix + "_vis.csv"
     df = pd.read_csv(filename)
     
     # Create a column which is just date
     df["date"] = pd.to_datetime(df["created_at"], utc=True).dt.strftime('%Y-%m-%d')
 
-    freq_df = get_tweet_frequencies(df)
+    #freq_df = get_tweet_frequencies(df)
     
-    freq_df["date"] = pd.to_datetime(freq_df["date"])
-    freq_df['date_ordinal'] = pd.to_datetime(freq_df['date']).apply(lambda date: date.toordinal())
+    df["date"] = pd.to_datetime(df["date"])
+    df['date_ordinal'] = pd.to_datetime(df['date']).apply(lambda date: date.toordinal())
 
     # Visualize
     title = "Mentions of: " + str(data_prefix)
-    vis_keyword_mentions_freq(data_prefix, freq_df, title, ysmooth)
+    vis_keyword_mentions_freq(data_prefix, df, title, ysmooth_nr1, ysmooth_nr2)
     
-    freq_hashtags = get_hashtag_frequencies(freq_df)
+    freq_hashtags = get_hashtag_frequencies(df)
     hash_df = freq_hashtags.sort_values(by=['nr_of_hashtags'], ascending=False)
     vis_hashtag_freq(data_prefix, hash_df, nr_of_hashtags = 30)
     
     # Sentiment Analysis
     # Rolling average
-    freq_df["date"] = pd.to_datetime(df["date"])
-    freq_df['compound_7day_ave'] = df.compound.rolling(7).mean().shift(-3)
-    vis_sentiment_compound(data_prefix, freq_df)
+    #freq_df['compound_7day_ave'] = df.compound.rolling(7).mean().shift(-3)
+    vis_sentiment_compound(data_prefix, df, ysmooth_c1, ysmooth_c2)
     
     ## WORD FREQUENCY
     print("Get word frequency")
-    texts, word_freq = prep_word_freq(freq_df)
+    texts, word_freq = prep_word_freq(df)
     vis_word_freq(data_prefix, word_freq, nr_of_words = 30)
     
     # WORD CLOUD
@@ -436,9 +430,9 @@ def visualize(data_prefix, ysmooth):
         vis_bigram_graph(data_prefix, d, graph_layout_number = k)
     
     
-    print(freq_df.head())
-    print(freq_df.columns)
-    freq_df.to_csv("../" + data_prefix + "_final.csv",index = False)
+    print(df.head())
+    print(df.columns)
+    df.to_csv("../" + data_prefix + "_final.csv",index = False)
     
 ########################################################################################################################
 ##     DEFINE INPUT
@@ -474,7 +468,7 @@ def main(argv):
             small = arg
             print('Small: ', small)
     print('Input keywords are ', keywords)
-    return keywords, from_date, to_date
+    return keywords, from_date, to_date, small
 
 ########################################################################################################################
 ##     INPUT
@@ -482,7 +476,7 @@ def main(argv):
 
 if __name__ == "__main__":
     
-    keywords, from_date, to_date = main(sys.argv[1:])
+    keywords, from_date, to_date, small = main(sys.argv[1:])
     ori_keyword_list = keywords.split(",")
     
     keyword_list = []
@@ -498,10 +492,19 @@ if __name__ == "__main__":
     data_prefix = keyword_list[0]
     
     ## conditional for ysmooth depending on small
-    ysmooth = False
+    if small:
+        ysmooth_nr1 = "s200_nr_of_tweets"
+        ysmooth_nr2 = "s500_nr_of_tweets"
+        ysmooth_c1 = "s200_compound"
+        ysmooth_c2 = "s500_compound"
+    else:
+        ysmooth_nr1 = "s2000_nr_of_tweets"
+        ysmooth_nr2 = "s5000_nr_of_tweets"
+        ysmooth_c1 = "s2000_compound"
+        ysmooth_c2 = "s5000_compound"
     
     ###############################
     print("---VISUALIZE---")
     print("START loading data: ", data_prefix)
     
-    visualize(data_prefix, ysmooth)
+    visualize(data_prefix, ysmooth_nr1, ysmooth_nr2, ysmooth_c1, ysmooth_c2)
