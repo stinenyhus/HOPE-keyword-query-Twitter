@@ -168,7 +168,7 @@ def set_base_plot_settings(fontsize, if_palette):
 
     return fig, ax1, palette
 
-def set_late_plot_settings(if_dates):
+def set_late_plot_settings(fig, ax1, if_dates):
     ax1.set(xlabel="", ylabel = "")
     ax1.xaxis.get_label().set_fontsize(40)
     ax1.yaxis.get_label().set_fontsize(40)
@@ -183,27 +183,26 @@ def set_late_plot_settings(if_dates):
     ax1.set(ylim=(0, None))
     return fig, ax1
 
-def set_late_barplot_settings():
+def set_late_barplot_settings(fig, ax1):
     ax1.set(xlabel="", ylabel = "")
     ax1.xaxis.get_label().set_fontsize(40)
     ax1.yaxis.get_label().set_fontsize(40)
     return fig, ax1
 
 ##### --- VISUALIZATION FUNCTIONS --- #####
-def vis_keyword_mentions_freq(data_prefix, freq_df, title, ysmooth_nr1, ysmooth_nr2):
+def vis_keyword_mentions_freq(data_prefix, df, title, ysmooth_nr1, ysmooth_nr2):
     print("Visualize keyword mentions frequency")
     fig, ax1, palette = set_base_plot_settings(fontsize=30, if_palette = True)
 
     ax1 = sns.lineplot(x="date", y="nr_of_tweets", 
                       palette = palette[0], 
-                        linewidth = 3, data = freq_df)
+                        linewidth = 3, data = df)
 
     ax1 = sns.lineplot(x="date", y=ysmooth_nr1, 
                   color = palette[5], 
-                   label = "Smoothed",
                      linewidth = 5, data = df)
         
-    fig, ax1 = set_late_plot_settings(if_dates = True)
+    fig, ax1 = set_late_plot_settings(fig, ax1, if_dates = True)
 
     plot_name = "../fig/" + data_prefix + ysmooth_nr1 + "_freq_mentions.png"
     fig.savefig(plot_name, bbox_inches='tight')
@@ -212,14 +211,13 @@ def vis_keyword_mentions_freq(data_prefix, freq_df, title, ysmooth_nr1, ysmooth_
 
     ax1 = sns.lineplot(x="date", y="nr_of_tweets", 
                       palette = palette[0], 
-                        linewidth = 3, data = freq_df)
+                        linewidth = 3, data = df)
 
     ax1 = sns.lineplot(x="date", y=ysmooth_nr2, 
                   color = palette[5], 
-                   label = "Smoothed",
                      linewidth = 5, data = df)
         
-    fig, ax1 = set_late_plot_settings(if_dates = True)
+    fig, ax1 = set_late_plot_settings(fig, ax1, if_dates = True)
 
     plot_name = "../fig/" + data_prefix + ysmooth_nr2 + "_freq_mentions.png"
     fig.savefig(plot_name, bbox_inches='tight')
@@ -235,7 +233,7 @@ def vis_hashtag_freq(data_prefix, df, nr_of_hashtags):
 
     ax1 = sns.barplot(y="hashtag", x="nr_of_hashtags", palette = palette, data = df0)
 
-    fig, ax1 = set_late_barplot_settings()
+    fig, ax1 = set_late_barplot_settings(fig, ax1)
 
     plot_name = "../fig/" + data_prefix + "_frequent_hashtags.png"
     fig.savefig(plot_name, bbox_inches='tight')
@@ -246,14 +244,14 @@ def vis_sentiment_compound(data_prefix, df, ysmooth_c1, ysmooth_c2):
     fig, ax1, palette = set_base_plot_settings(fontsize=30, if_palette = True)
 
     ax1 = sns.lineplot(x="date", y="centered_compound", 
-                       label="Daily", color = palette[2],
+                       color = palette[2],
                          linewidth = 3, data = df)
 
     ax1 = sns.lineplot(x="date", y=ysmooth_c1, 
-                       label="7 Day Average", color = palette[5],
+                       color = palette[5],
                          linewidth = 5, data = df)
 
-    fig, ax1 = set_late_plot_settings(if_dates = True, if_bg = False)
+    fig, ax1 = set_late_plot_settings(fig, ax1, if_dates = True)
     ax1.set(ylim=(-1, 1))
 
     plot_name = "../fig/" + data_prefix + ysmooth_c1 + "_sentiment_compound.png"
@@ -263,17 +261,17 @@ def vis_sentiment_compound(data_prefix, df, ysmooth_c1, ysmooth_c2):
     fig, ax1, palette = set_base_plot_settings(fontsize=30, if_palette = True)
 
     ax1 = sns.lineplot(x="date", y="centered_compound", 
-                       label="Daily", color = palette[2],
+                       color = palette[2],
                          linewidth = 3, data = df)
 
     ax1 = sns.lineplot(x="date", y=ysmooth_c2, 
-                       label="7 Day Average", color = palette[5],
+                       color = palette[5],
                          linewidth = 5, data = df)
 
-    fig, ax1 = set_late_plot_settings(if_dates = True, if_bg = False)
+    fig, ax1 = set_late_plot_settings(fig, ax1, if_dates = True)
     ax1.set(ylim=(-1, 1))
 
-    plot_name = "../fig/" + data_prefix + ysmooth_c1 + "_sentiment_compound.png"
+    plot_name = "../fig/" + data_prefix + ysmooth_c2 + "_sentiment_compound.png"
     fig.savefig(plot_name, bbox_inches='tight')
     print("Save figure done\n------------------\n")
 
@@ -289,7 +287,7 @@ def vis_word_freq(data_prefix, word_freq, nr_of_words):
 
     ax1 = sns.barplot(y="Word", x="Frequency", palette = palette, data = df0)
 
-    fig, ax1 = set_late_barplot_settings()
+    fig, ax1 = set_late_barplot_settings(fig, ax1)
 
     plot_name = "../fig/" + data_prefix + "_word_frequency.png"
     fig.savefig(plot_name, bbox_inches='tight')
@@ -383,7 +381,7 @@ def vis_bigram_graph(data_prefix, d, graph_layout_number):
 ########################################################################################################################
 
 def visualize(data_prefix, ysmooth_nr1, ysmooth_nr2, ysmooth_c1, ysmooth_c2):
-    filename = "../" + data_prefix + "_vis.csv"
+    filename = "../" + data_prefix + "_smoothed.csv"
     df = pd.read_csv(filename)
     
     # Create a column which is just date
@@ -424,7 +422,7 @@ def visualize(data_prefix, ysmooth_nr1, ysmooth_nr2, ysmooth_c1, ysmooth_c2):
     vis_word_cloud(data_prefix, wordcloud)
     
     # BIGRAM GRAPH
-    d = create_bigrams(freq_df)
+    d = create_bigrams(df)
     k_numbers_to_try = [1,2,3,4,5]
     for k in k_numbers_to_try:
         vis_bigram_graph(data_prefix, d, graph_layout_number = k)

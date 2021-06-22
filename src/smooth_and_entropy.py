@@ -187,7 +187,7 @@ def smooth_and_entropy(data_prefix, vis_file, from_date, compound, nroftweets, e
     if nroftweets:
         comment.append("_nroftweets")
     
-    outfile_name = "../" + data_prefix + "_smoothed" + "".join(comment) + ".csv"
+    outfile_name = "../" + data_prefix + "_smoothed.csv"
     df.to_csv(outfile_name, index=False)
     
     del df
@@ -250,7 +250,7 @@ if __name__ == "__main__":
 
     data_prefix = keyword_list[0]
 
-    vis_file = "../" + data_prefix + "_final.csv"
+    vis_file = "../" + data_prefix + "_vis.csv"
 
     ###############################
     print("--------SMOOTHING PIPELINE START--------")
