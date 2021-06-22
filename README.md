@@ -12,7 +12,7 @@ An example of how the mentions of vaccines overall and the 4 popular vaccines ar
 ## Usage
 
 There are two pipelines:
-1. Querying Twitter for keywords
+1. Querying Twitter for keywords (this includes the 2nd pipeline)
 2. Automatically retrieving smoothed values for number of mentions over time and semantic scores over time
 
 ### 1. Querying Twitter for keywords
@@ -20,11 +20,13 @@ There are two pipelines:
 Based on keywords (and possibly date specifics) this pipeline extracts tweets from our Twitter corpus where the keywords match with texts.
 
 ```bash
-nohup bash src/pipeline.sh -k keyword1,keyword2 -f 2020-12-01 -t 2020-12-30 &> logs/keyword1_logs.log &
+nohup bash src/pipeline.sh -k keyword1,keyword2 -f 2020-12-01 -t 2020-12-30 -s True &> logs/keyword1_logs.log &
 
 ```
 Use "bash" and *not* "sh"!
 Nohup allows for the code to run in the background while freeing up the terminal. It also saves the logs into the logs/ folder where one can later see statistics about the dataset as well as what might have gone wrong and where.
+
+If to-date is not specified, the code queries for data up until the latest dates. If a file on this keyword query already exists, the code queries for data starting from the latest date that exists in the pre-made dataset to save time.
 
 Usage without nohup:
 ```bash
@@ -37,6 +39,7 @@ bash src/pipeline.sh -k keyword1,keyword2 -f 2020-12-01 -t 2020-12-30
 | -k  | Keyword(s) to query  | keyword1,keyword2  | covid  | covid,dkpol  |
 | -f  | From date: if one wants to specify date range  | YEAR-MONTH-DAY  | 2020-01-01  | 2020-12-02  |
 | -t  | To date: if one wants to specify date range  | YEAR-MONTH-DAY  | 2020-01-30  | 2020-12-20  |
+| -s  | Small or not: most datasets are small (100-500 tweets per day), use False when it's a large dataset (1000-more tweets per day). This is used for setting the parameters for Gaussian smoothing. Produces two types of smoothing plots (smoother and less smoother, so that smoothing can be done automatically)  | True/False | True | False |
 | -l  | Test with limit: to speed up testing, samples only from data of this year/month/day  | YEARMONTHDAY  | 202001  | 20201220 |
 
 NOTE: the **first** keyword entered is also used to prefix the data files and figures!
