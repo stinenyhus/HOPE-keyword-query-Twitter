@@ -15,12 +15,14 @@ There are two pipelines:
 1. Querying Twitter for keywords (this includes the 2nd pipeline)
 2. Automatically retrieving smoothed values for number of mentions over time and semantic scores over time
 
+The first pipeline has the second implemented inside of it as well now.
+
 ### 1. Querying Twitter for keywords
 
 Based on keywords (and possibly date specifics) this pipeline extracts tweets from our Twitter corpus where the keywords match with texts.
 
 ```bash
-nohup bash src/pipeline.sh -k keyword1,keyword2 -f 2020-12-01 -t 2020-12-30 -s True &> logs/keyword1_logs.log &
+nohup bash src/pipeline.sh -k keyword1,keyword2 -f 2020-12-01 -t 2020-12-30 -s True &> logs/keyword1_[today's_date].log &
 
 ```
 Use "bash" and *not* "sh"!
@@ -91,9 +93,15 @@ python semantic_scores.py $*
 ```
 Calculates semantic scores with Danish Vader for the cleaned tweets. Outputs ``keyword1_vis.csv``
 
-5. Visualize
+5. Smoothing
 ```bash
 source /home/commando/maris/bin/activate
+python smooth_and_entropy.py $*
+```
+Gaussian smoothing on number of tweets per day and compound scores (can calculate entropy as well). Good for clarifying the visuals.
+
+6. Visualize
+```bash
 python visualize.py $*
 ```
 Creates initial visuals: keyword mentions frequency over time, compound sentiment over time, frequent hashtags, frequent words, wordcloud, bigram graphs with k varying between 1 and 5. Saves to ``fig/``
