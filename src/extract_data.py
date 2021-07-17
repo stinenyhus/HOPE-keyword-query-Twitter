@@ -5,7 +5,6 @@ Extract the data with your specified keywords and filtering from the collected T
 
 import pandas as pd
 import glob
-import ndjson
 import re
 import string
 import getopt, sys
@@ -18,77 +17,44 @@ from icecream import ic
 ##     DEFINE FUNCTIONS
 ########################################################################################################################
 
-def retrieve_retweets(row):
-    if re.match("^RT", row):
-        RT = True
-    else:
-        RT = False
-    return RT
-
 def remove_retweets(data):
+    """Finds tweets that are RTs and removes them
+    data: pandas DataFrame with (at leat) column "text"
+    """
     patternDel = "^RT"
     data["text"] = data["text"].astype(str)
     filtering = data['text'].str.contains(patternDel)
     removed_RT = data[~filtering].reset_index(drop=True)
     return removed_RT
 
-def extract_usernames(row):
-    username_list = list(re.findall(r'@(\S*)\w', row["text"]))
-    return username_list
-
-def extract_keywords(row, keyword_list):
-    if type(row["text"]) != str:
-        print("Broken text: ", row["text"])
-        row["text"] = row["text"].astype(str)
+def extract_keywords(row, 
+                     keyword_list:list):
+    """Lowercases tweets, finds keyword matches
+    row: pandas DataFrame row
+    keyword_list: list of keywords (str)
+    """
+    row["text"] = row["text"].astype(str)
     tweet = row["text"].lower()
     res = [ele for ele in keyword_list if(ele in tweet)] 
     return res
 
-def remove_date_dash(text):
+def remove_date_dash(text: str):
+    """Removes dash in dates when ignoring already processed files based on whether the date exists or is new
+    text: date as a string
+    """
     for punctuation in string.punctuation:
         text = text.replace(punctuation, '')
     return text
 
-def remove_processed_files_from_path(output_name):
-    ori_df = pd.read_csv(output_name)
-    ori_df = ori_df[ori_df["0"] != 'created_at'].reset_index(drop=True)
-        
-    dates = pd.to_datetime(ori_df["0"].dropna()[1:], utc=True).dt.strftime('%Y-%m-%d').drop_duplicates().reset_index(drop = True).astype(str)
-    dates_to_ignore = dates.apply(remove_date_dash).to_list()
-        
-    files_to_ignore = []
-    for file in mega_path:
-        date = re.findall(r'\/data\/001_twitter_hope\/preprocessed\/da\/td_(\d*)', file)[0]
-        if date in dates_to_ignore:
-            files_to_ignore.append(file)
-
-    for element in files_to_ignore:
-        if element in mega_path:
-            mega_path.remove(element)
-            
-    return mega_path
-
-def remove_dates_lessthan_from_date(from_date_str):
-    files_to_ignore = []
-    for file in mega_path:
-        date = re.findall(r'\/data\/001_twitter_hope\/preprocessed\/da\/td_(\d*)', file)[0]
-        if date < from_date_str:
-            files_to_ignore.append(file)
-
-    for element in files_to_ignore:
-        if element in mega_path:
-            mega_path.remove(element)
-            
-    return mega_path
 
 def ignore_dates_less_than(output_name):
+    """Finds out which dates already exist in the processed dataset and removes files from mega path that are less than the max date
+    output_name: path to the already existing output dataframe
+    """
     ori_df = pd.read_csv(output_name)
     ori_df = ori_df[ori_df["0"] != 'created_at'].reset_index(drop=True)
         
     dates = pd.to_datetime(ori_df["0"].dropna()[1:], utc=True).dt.strftime('%Y-%m-%d').drop_duplicates().reset_index(drop = True).astype(str)
-    
-    # Sort the dates
-    dates_to_ignore = dates.apply(remove_date_dash).to_list()
     maximum_date = remove_date_dash(max(dates))
         
     files_to_ignore = []
@@ -107,11 +73,18 @@ def ignore_dates_less_than(output_name):
 ##     MAIN FUNCTION
 ########################################################################################################################
 
-def extract_data(keyword_list, data_prefix, mega_path, from_date, to_date):
+def extract_data(keyword_list:list, 
+                 data_prefix: str, 
+                 mega_path:str,
+                 root_path: str, 
+                 from_date:str, 
+                 to_date:str):
+    """Main function that runs and logs extraction of data
+    """
     print("START data extraction for keywords: ", keyword_list)
     print("---")
     
-    output_name = "../" + data_prefix + "_data.csv"
+    output_name = root_path + data_prefix + "_data.csv"
     print("Does the file already exist?: ", path.exists(output_name))
     
     if path.exists(output_name):
@@ -122,7 +95,7 @@ def extract_data(keyword_list, data_prefix, mega_path, from_date, to_date):
     ic(mega_path)
     
     # Create a directory for these files
-    temp_path = "../tmp_" + data_prefix + "/"
+    temp_path = root_path + "tmp_" + data_prefix + "/"
 
     try:
         os.mkdir(temp_path)
@@ -277,7 +250,8 @@ if __name__ == "__main__":
         # Runs through all the files here, date does not matter
         pathname = '/data/001_twitter_hope/preprocessed/da/*.ndjson'
         mega_path = glob.glob(pathname)
-
+    
+    root_path = "/home/commando/maris/hope-keyword-templates/"
     ###############################
     print("--------EXTRACT DATA--------")
-    extract_data(keyword_list, data_prefix, mega_path, from_date, to_date)
+    extract_data(keyword_list, data_prefix, mega_path, root_path, from_date, to_date)

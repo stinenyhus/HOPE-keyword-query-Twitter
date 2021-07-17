@@ -12,7 +12,10 @@ import glob
 ##     DEFINE FUNCTIONS
 ########################################################################################################################
 
-def remove_emoji(string):
+def remove_emoji(string:str):
+    """Remove all emojis (captures a lot but not everything)
+    string: str
+    """
     emoji_pattern = re.compile("["
                                u"\U0001F600-\U0001F64F"  # emoticons
                                u"\U0001F300-\U0001F5FF"  # symbols & pictographs
@@ -36,6 +39,9 @@ def remove_emoji(string):
     return emoji_pattern.sub(r'', string)
 
 def remove_mentions(row):
+    """Remove mentions, hashtags, URLs, emojis
+    row: pandas DataFrame row with column "text"
+    """
     tweet = row["text"]
     clean_tweet = re.sub(r'@(\S*)\w', '', tweet) #mentions
     clean_tweet = re.sub(r'#\S*\w', '', clean_tweet) # hashtags
@@ -43,14 +49,16 @@ def remove_mentions(row):
     url_pattern = re.compile(
         r'(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})')
     clean_tweet = re.sub(url_pattern, '', clean_tweet)
-    
     clean_tweet = remove_emoji(clean_tweet)
     return clean_tweet
 
 def remove_quote_tweets(df):
+    """Creates mentioneless_text, remove bot-like tweets/quote tweets, when 50 first characters are the exact same, remove as duplicates
+    df: pandas DataFrame with column "text"
+    """
     df["text"] = df["text"].astype(str)
     df["mentioneless_text"] = df.apply(lambda row: remove_mentions(row), axis = 1)
-    print("\n\n Generated mentioneless texts \n\n")
+    print("Generated mentioneless texts")
     df["text50"] = df["mentioneless_text"].str[0:50]
     
     df["dupe50"] = df["text50"].duplicated(keep = "first")
@@ -63,22 +71,31 @@ def remove_quote_tweets(df):
 
 # Aggregate a frequency DF
 def get_tweet_frequencies(df):
+    """Get tweet frequency, how many tweets per day
+    df: pandas DataFrame with column "date"
+    """
     # Add freq of hashtags by themselves in the dataset
     tweet_freq = pd.DataFrame({'nr_of_tweets' : df.groupby(['date']).size()}).reset_index()
-
     # Add the whole_frew to id_hashtag
     freq_tweets = pd.merge(df, tweet_freq, how='left', on=['date'])#, 'id', 'created_at'])
-    
     return freq_tweets
 
 ########################################################################################################################
 ##     MAIN FUNCTION
 ########################################################################################################################
 
-def preprocess_stats(data_prefix, from_date, to_date):
-    filename = "../" + data_prefix + "_data.csv"
+def preprocess_stats(data_prefix: str, 
+                     root_path:str,
+                     from_date:str, 
+                     to_date:str):
+    """Main preprocessing, cleans data, masks it if necessary
+    data_prefix: indicates which dataset it is
+    root_path: location for the input and output
+    from_date: date from which 
+    """
+    input_data = root_path + data_prefix + "_data.csv"
     
-    df = pd.read_csv(filename,lineterminator='\n')[1:].rename(columns={"0":"created_at", "1":"id", "2":"text", "3":"search_keyword"})
+    df = pd.read_csv(input_data,lineterminator='\n')[1:].rename(columns={"0":"created_at", "1":"id", "2":"text", "3":"search_keyword"})
     print(df.head())
 
     df = df[df["created_at"] != '0'].reset_index(drop=True)
@@ -98,41 +115,14 @@ def preprocess_stats(data_prefix, from_date, to_date):
         df = df.loc[mask]
     
     print("\nStart removing quote tweets")
-    print(df.columns)
     df2 = remove_quote_tweets(df)
     print("\nGet tweet frequencies")
     df3 = get_tweet_frequencies(df2)
     
     print(df3.groupby(["search_keyword"]).count().reset_index())
     
-    out_filename = "../" + data_prefix + "_data_pre.csv"
+    out_filename = root_path + data_prefix + "_data_pre.csv"
     df3.to_csv(out_filename, index=False)
-
-# Legacy function
-def preprocess_stats_external(filename):
-    df = pd.read_json(filename, lines = True)
-    ic(df.head())#[1:].rename(columns={"0":"created_at", "1":"id", "2":"text", "3":"search_keyword"})
-    
-    df = df[["created_at", "id", "text"]]
-    ic(df.head())
-    
-    df = df[df["created_at"] != '0'].reset_index(drop=True)
-    df = df[df["created_at"] != 'created_at'].reset_index(drop=True)
-    df = df.sort_values(by='created_at').reset_index(drop=True)
-    ic(len(df))
-    
-    ic(df.created_at.unique())
-    df["date"] = pd.to_datetime(df["created_at"], utc=True).dt.strftime('%Y-%m-%d')
-    
-    if from_date:
-        # Choose specified date range
-        mask = (df['date'] > from_date) & (df['date'] <= to_date)
-        df = df.loc[mask]
-    
-    df = remove_quote_tweets(df)
-        
-    out_filename = "../" + data_prefix + "_data.csv"
-    df.to_csv(out_filename, index=False)
     
 ########################################################################################################################
 ##     DEFINE INPUT
@@ -190,9 +180,8 @@ if __name__ == "__main__":
     print(keyword_list)
 
     data_prefix = keyword_list[0]
+    root_path = "/home/commando/maris/hope-keyword-templates/"
     
     ############################
     print("---PREPROCESS STATS---")
-    preprocess_stats(data_prefix, from_date, to_date)
-    
-    #preprocess_stats_external(glob.glob("/data/rbkh-twitter-coronapas_epidemilov_tvangs/tvangsvaccine*.ndjson")[0])
+    preprocess_stats(data_prefix, root_path, from_date, to_date)

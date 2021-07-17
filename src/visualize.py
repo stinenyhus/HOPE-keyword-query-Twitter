@@ -29,7 +29,7 @@ from wordcloud import WordCloud
 ################################################################################################
 ## PREPARE DATA FUNCTIONS
 ################################################################################################
-
+activated = spacy.prefer_gpu()
 sp = spacy.load('da_core_news_lg')
 nlp = Danish()
 tokenizer = nlp.tokenizer
@@ -190,7 +190,7 @@ def set_late_barplot_settings(fig, ax1):
     return fig, ax1
 
 ##### --- VISUALIZATION FUNCTIONS --- #####
-def vis_keyword_mentions_freq(data_prefix, df, title, ysmooth_nr1, ysmooth_nr2):
+def vis_keyword_mentions_freq(data_prefix, root_path, df, title, ysmooth_nr1, ysmooth_nr2):
     print("Visualize keyword mentions frequency")
     fig, ax1, palette = set_base_plot_settings(fontsize=30, if_palette = True)
 
@@ -219,11 +219,12 @@ def vis_keyword_mentions_freq(data_prefix, df, title, ysmooth_nr1, ysmooth_nr2):
         
     fig, ax1 = set_late_plot_settings(fig, ax1, if_dates = True)
 
-    plot_name = "../fig/" + data_prefix + ysmooth_nr2 + "_freq_mentions.png"
+    plot_name = root_path + "fig/" + data_prefix + ysmooth_nr2 + "_freq_mentions.png"
     fig.savefig(plot_name, bbox_inches='tight')
     print("Save figure done\n------------------\n")
-    
-def vis_hashtag_freq(data_prefix, df, nr_of_hashtags):
+
+
+def vis_hashtag_freq(data_prefix, root_path, df, nr_of_hashtags):
     print("Visualize hashtag frequency")
     fig, ax1, palette = set_base_plot_settings(fontsize=30, if_palette = False)
     
@@ -235,11 +236,11 @@ def vis_hashtag_freq(data_prefix, df, nr_of_hashtags):
 
     fig, ax1 = set_late_barplot_settings(fig, ax1)
 
-    plot_name = "../fig/" + data_prefix + "_frequent_hashtags.png"
+    plot_name = root_path + "fig/" + data_prefix + "_frequent_hashtags.png"
     fig.savefig(plot_name, bbox_inches='tight')
     print("Save figure done\n------------------\n")
     
-def vis_sentiment_compound(data_prefix, df, ysmooth_c1, ysmooth_c2):
+def vis_sentiment_compound(data_prefix, root_path, df, ysmooth_c1, ysmooth_c2):
     print("Visualize sentiment compound")
     fig, ax1, palette = set_base_plot_settings(fontsize=30, if_palette = True)
 
@@ -254,7 +255,7 @@ def vis_sentiment_compound(data_prefix, df, ysmooth_c1, ysmooth_c2):
     fig, ax1 = set_late_plot_settings(fig, ax1, if_dates = True)
     ax1.set(ylim=(-1, 1))
 
-    plot_name = "../fig/" + data_prefix + ysmooth_c1 + "_sentiment_compound.png"
+    plot_name = root_path + "fig/" + data_prefix + ysmooth_c1 + "_sentiment_compound.png"
     fig.savefig(plot_name, bbox_inches='tight')
     
     
@@ -271,11 +272,11 @@ def vis_sentiment_compound(data_prefix, df, ysmooth_c1, ysmooth_c2):
     fig, ax1 = set_late_plot_settings(fig, ax1, if_dates = True)
     ax1.set(ylim=(-1, 1))
 
-    plot_name = "../fig/" + data_prefix + ysmooth_c2 + "_sentiment_compound.png"
+    plot_name = root_path + "fig/" + data_prefix + ysmooth_c2 + "_sentiment_compound.png"
     fig.savefig(plot_name, bbox_inches='tight')
     print("Save figure done\n------------------\n")
 
-def vis_word_freq(data_prefix, word_freq, nr_of_words):
+def vis_word_freq(data_prefix, root_path, word_freq, nr_of_words):
     print("Visualize word frequency")
     
     fig, ax1, palette = set_base_plot_settings(fontsize=30, if_palette = False)
@@ -289,17 +290,17 @@ def vis_word_freq(data_prefix, word_freq, nr_of_words):
 
     fig, ax1 = set_late_barplot_settings(fig, ax1)
 
-    plot_name = "../fig/" + data_prefix + "_word_frequency.png"
+    plot_name = root_path + "fig/" + data_prefix + "_word_frequency.png"
     fig.savefig(plot_name, bbox_inches='tight')
     print("Save figure done\n------------------\n")
     
-def vis_word_cloud(data_prefix, wordcloud):
+def vis_word_cloud(data_prefix, root_path, wordcloud):
     plt.figure(figsize=(40, 30))
     # Display image
     plt.imshow(wordcloud) 
     # No axis details
     plt.axis("off");
-    plot_name = "../fig/" + data_prefix + "_word_cloud.png"
+    plot_name = root_path + "fig/" + data_prefix + "_word_cloud.png"
     plt.savefig(plot_name, bbox_inches='tight')
     
 # Aggregate a frequency DF
@@ -330,7 +331,7 @@ def create_bigrams(freq_df):
     d = bigram_df.set_index("bigram").T.to_dict("records")
     return d
     
-def vis_bigram_graph(data_prefix, d, graph_layout_number):
+def vis_bigram_graph(data_prefix, root_path, d, graph_layout_number):
     print("Visualize bigrams")
     sns.set(font_scale=1.5)
     sns.set_style("whitegrid")
@@ -372,7 +373,7 @@ def vis_bigram_graph(data_prefix, d, graph_layout_number):
     fig.patch.set_visible(False)
     ax.axis('off')
 
-    plot_name = "../fig/" + str(data_prefix) + "_bigram_graph_k" + str(graph_layout_number) + ".png"
+    plot_name = root_path + "fig/" + str(data_prefix) + "_bigram_graph_k" + str(graph_layout_number) + ".png"
     fig.savefig(plot_name, dpi=150, bbox_inches='tight')
     print("Save figure done\n------------------\n")
 
@@ -380,8 +381,8 @@ def vis_bigram_graph(data_prefix, d, graph_layout_number):
 ##     MAIN FUNCTION
 ########################################################################################################################
 
-def visualize(data_prefix, ysmooth_nr1, ysmooth_nr2, ysmooth_c1, ysmooth_c2):
-    filename = "../" + data_prefix + "_smoothed.csv"
+def visualize(data_prefix, root_path, ysmooth_nr1, ysmooth_nr2, ysmooth_c1, ysmooth_c2):
+    filename = root_path + data_prefix + "_smoothed.csv"
     df = pd.read_csv(filename)
     
     # Create a column which is just date
@@ -394,21 +395,21 @@ def visualize(data_prefix, ysmooth_nr1, ysmooth_nr2, ysmooth_c1, ysmooth_c2):
 
     # Visualize
     title = "Mentions of: " + str(data_prefix)
-    vis_keyword_mentions_freq(data_prefix, df, title, ysmooth_nr1, ysmooth_nr2)
+    vis_keyword_mentions_freq(data_prefix, root_path, df, title, ysmooth_nr1, ysmooth_nr2)
     
     freq_hashtags = get_hashtag_frequencies(df)
     hash_df = freq_hashtags.sort_values(by=['nr_of_hashtags'], ascending=False)
-    vis_hashtag_freq(data_prefix, hash_df, nr_of_hashtags = 30)
+    vis_hashtag_freq(data_prefix, root_path, hash_df, nr_of_hashtags = 30)
     
     # Sentiment Analysis
     # Rolling average
     #freq_df['compound_7day_ave'] = df.compound.rolling(7).mean().shift(-3)
-    vis_sentiment_compound(data_prefix, df, ysmooth_c1, ysmooth_c2)
+    vis_sentiment_compound(data_prefix, root_path, df, ysmooth_c1, ysmooth_c2)
     
     ## WORD FREQUENCY
     print("Get word frequency")
     texts, word_freq = prep_word_freq(df)
-    vis_word_freq(data_prefix, word_freq, nr_of_words = 30)
+    vis_word_freq(data_prefix, root_path, word_freq, nr_of_words = 30)
     
     # WORD CLOUD
     #%matplotlib inline
@@ -419,18 +420,18 @@ def visualize(data_prefix, ysmooth_nr1, ysmooth_nr2, ysmooth_c1, ysmooth_c2):
                           background_color='white', colormap="rocket", 
                           collocations=False, stopwords = stop_words).generate(texts)
 
-    vis_word_cloud(data_prefix, wordcloud)
+    vis_word_cloud(data_prefix, root_path, wordcloud)
     
     # BIGRAM GRAPH
     d = create_bigrams(df)
     k_numbers_to_try = [1,2,3,4,5]
     for k in k_numbers_to_try:
-        vis_bigram_graph(data_prefix, d, graph_layout_number = k)
+        vis_bigram_graph(data_prefix, root_path, d, graph_layout_number = k)
     
     
     print(df.head())
     print(df.columns)
-    df.to_csv("../" + data_prefix + "_final.csv",index = False)
+    df.to_csv(root_path + data_prefix + "_final.csv",index = False)
     
 ########################################################################################################################
 ##     DEFINE INPUT
@@ -488,9 +489,15 @@ if __name__ == "__main__":
     print(keyword_list)
 
     data_prefix = keyword_list[0]
+    root_path = "/home/commando/maris/hope-keyword-templates/"
+    
+    if small == "True":
+        if_small = True
+    elif small == "False":
+        if_small = False
     
     ## conditional for ysmooth depending on small
-    if small:
+    if if_small:
         ysmooth_nr1 = "s200_nr_of_tweets"
         ysmooth_nr2 = "s500_nr_of_tweets"
         ysmooth_c1 = "s200_compound"
@@ -505,4 +512,4 @@ if __name__ == "__main__":
     print("---VISUALIZE---")
     print("START loading data: ", data_prefix)
     
-    visualize(data_prefix, ysmooth_nr1, ysmooth_nr2, ysmooth_c1, ysmooth_c2)
+    visualize(data_prefix, root_path, ysmooth_nr1, ysmooth_nr2, ysmooth_c1, ysmooth_c2)

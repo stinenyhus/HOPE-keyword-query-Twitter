@@ -22,31 +22,27 @@ from os import path
 ##     DEFINE FUNCTIONS
 ########################################################################################################################
 
-def entropy2(labels, base=None):
+def entropy2(labels, 
+             base=None):
     """ Computes entropy of label distribution. """
-
     n_labels = len(labels)
-
     if n_labels <= 1:
         return 0
-
     value,counts = np.unique(labels, return_counts=True)
     probs = counts / n_labels
     n_classes = np.count_nonzero(probs)
-
     if n_classes <= 1:
         return 0
-
     ent = 0.
-
     # Compute entropy
     base = math.e if base is None else base
     for i in probs:
         ent -= i * math.log(i, base)
-
     return ent
 
-def gaussian_kernel(arr, sigma=False, fwhm=False):
+def gaussian_kernel(arr, 
+                    sigma=False, 
+                    fwhm=False):
     """ gaussian kernel smoother for signal arr
     - sigma: standard deviation of gaussian distribution
     - fwhm: full width at half maximum of gaussian distribution
@@ -71,7 +67,7 @@ def gaussian_kernel(arr, sigma=False, fwhm=False):
 
 def get_tweet_frequencies(df):
     tweet_freq = pd.DataFrame({'nr_of_tweets' : df.groupby(['date']).size()}).reset_index()
-    freq_tweets = pd.merge(df, tweet_freq, how='left', on=['date'])#, 'id', 'created_at'])
+    freq_tweets = pd.merge(df, tweet_freq, how='left', on=['date'])
     return freq_tweets
 
 def apply_date_mask(df, from_date):
@@ -116,31 +112,37 @@ def center_entropy(df):
     df["centered_entropy"] = df["normalized_entropy"] - average_entropy
     return df
 
-def smooth_2000(df, compound, nroftweets, small):
-    #df["s2000_entropy"] = gaussian_kernel(df["entropy"], sigma = 1, fwhm = 2000)
-    if compound:
-        if small:
+def smooth_2000(df, if_compound, if_nroftweets, if_small):
+    if if_compound:
+        if if_small:
+            print("Compound FWHM = 200")
             df["s200_compound"] = gaussian_kernel(df["centered_compound"], sigma = 1, fwhm = 200)
         else:
+            print("Compound FWHM = 2000")
             df["s2000_compound"] = gaussian_kernel(df["centered_compound"], sigma = 1, fwhm = 2000)
-    if nroftweets:
-        if small:
+    if if_nroftweets:
+        if if_small:
+            print("Nr FWHM = 200")
             df["s200_nr_of_tweets"] = gaussian_kernel(df["nr_of_tweets"], sigma = 1, fwhm = 200)
         else:
+            print("Nr FWHM = 2000")
             df["s2000_nr_of_tweets"] = gaussian_kernel(df["nr_of_tweets"], sigma = 1, fwhm = 2000)
     return df
 
-def smooth_5000(df, compound, nroftweets, small):
-    #df["s5000_entropy"] = gaussian_kernel(df["entropy"], sigma = 1, fwhm = 5000)
-    if compound:
-        if small:
+def smooth_5000(df, if_compound, if_nroftweets, if_small):
+    if if_compound:
+        if if_small:
+            print("Compound FWHM = 500")
             df["s500_compound"] = gaussian_kernel(df["centered_compound"], sigma = 1, fwhm = 500)
         else:
+            print("Compound FWHM = 5000")
             df["s5000_compound"] = gaussian_kernel(df["centered_compound"], sigma = 1, fwhm = 5000)
-    if nroftweets:
-        if small:
+    if if_nroftweets:
+        if if_small:
+            print("Nr FWHM = 500")
             df["s500_nr_of_tweets"] = gaussian_kernel(df["nr_of_tweets"], sigma = 1, fwhm = 500)
         else:
+            print("Nr FWHM = 5000")
             df["s5000_nr_of_tweets"] = gaussian_kernel(df["nr_of_tweets"], sigma = 1, fwhm = 5000)
     return df
 
@@ -148,15 +150,30 @@ def smooth_5000(df, compound, nroftweets, small):
 ##     MAIN FUNCTION
 ########################################################################################################################
 
-def smooth_and_entropy(data_prefix, vis_file, from_date, compound, nroftweets, entropy, small):
+def smooth_and_entropy(data_prefix: str, 
+                       root_path: str, 
+                       from_date: str, 
+                       if_compound: bool, 
+                       if_nroftweets: bool, 
+                       if_entropy: bool, 
+                       if_small=True):
+    """Main smoothing function, the processes that occur depend on the booleans
+    data_prefix: str, 
+    root_path: str, 
+    from_date: str, 
+    if_compound: bool, smooth sentiment compound 
+    if_nroftweets: bool, smooth number of tweets
+    if_entropy: bool, calculate and smooth entropy
+    if_small=True
+    """
     print("Read in data, prepare")
+    vis_file = root_path + data_prefix + "_vis.csv"
     df = pd.read_csv(vis_file)
     df = df.sort_values("created_at")
     print(len(df))
     df["date"] = pd.to_datetime(df["created_at"], utc=True).dt.strftime('%Y-%m-%d')
     df["date"] = pd.to_datetime(df["date"])
     
-    #df = get_tweet_frequencies(df)
     df["date"] = pd.to_datetime(df["date"])
     
     df = apply_date_mask(df, from_date)
@@ -176,20 +193,19 @@ def smooth_and_entropy(data_prefix, vis_file, from_date, compound, nroftweets, e
     df = center_entropy(df)
     
     print("START SMOOTHING")
-    df = smooth_2000(df, compound, nroftweets, small)
-    print("Smooth 2000 DONE")
-    df = smooth_5000(df, compound, nroftweets, small)
-    print("Smooth 5000 DONE")
+    df = smooth_2000(df, if_compound, if_nroftweets, if_small)
+    print("Smooth1 DONE")
+    df = smooth_5000(df, if_compound, if_nroftweets, if_small)
+    print("Smooth2 DONE")
 
     comment = []
-    if compound:
+    if if_compound:
         comment.append("_compound")
-    if nroftweets:
+    if if_nroftweets:
         comment.append("_nroftweets")
     
-    outfile_name = "../" + data_prefix + "_smoothed.csv"
+    outfile_name = root_path + data_prefix + "_smoothed.csv"
     df.to_csv(outfile_name, index=False)
-    
     del df
 
 ########################################################################################################################
@@ -249,9 +265,13 @@ if __name__ == "__main__":
     ic(keyword_list)
 
     data_prefix = keyword_list[0]
-
-    vis_file = "../" + data_prefix + "_vis.csv"
+    root_path = "/home/commando/maris/hope-keyword-templates/"
+    
+    if small == "True":
+        if_small = True
+    elif small == "False":
+        if_small = False
 
     ###############################
     print("--------SMOOTHING PIPELINE START--------")
-    smooth_and_entropy(data_prefix, vis_file, from_date, compound = True, nroftweets = True, entropy=False, small = small)
+    smooth_and_entropy(data_prefix, root_path, from_date, if_compound = True, if_nroftweets = True, if_entropy=False, if_small = if_small)

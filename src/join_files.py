@@ -1,5 +1,5 @@
 """
-Join files made by 00_extract_data.py from data/ folder with the same prefix
+Join files made by extract_data.py from temporary data folder with the same prefix
 """
 import re
 import glob
@@ -13,36 +13,26 @@ from os import path
 ##     DEFINE FUNCTIONS
 ########################################################################################################################
 
-def get_df(filenames):
+def get_df(filenames: list):
+    """Reads in the 1st dataframe, then loops over the rest and appends them
+    filenames: list of filenames
+    """
     df = pd.read_csv(filenames[0], header = None, sep=",")
-    
-    ####################################
-    #df.columns = df.iloc[0]
-    #df = df.iloc[1:]
-    ####################################
 
     for file in filenames[1:]:
         print(file)
         df_0 = pd.read_csv(file, header = None, sep=",", lineterminator='\n')
-        ####################################
-        #df_0.columns = df_0.iloc[0]
-        #df_0 = df_0.iloc[1:]
-        ####################################
         df = df.append(df_0)
 
     df = df.drop_duplicates()
-    
     print("DF:", df.head())
-
     return df
 
-def clean_dates(df):
-    df.iloc[:,0] = pd.to_datetime(df.iloc[:,0], utc=True).dt.strftime('%Y-%m-%d %H:%M:%S')
-    return df
-
-def empty_data_folder(temp_path):
+def empty_data_folder(temp_path: str):
+    """Remove the temporary data folder with its contents
+    temp_path: path of the temporary folder
+    """
     print("Delete contents of tmp_*/")
-
     try:
         shutil.rmtree(temp_path)
     except OSError:
@@ -54,10 +44,17 @@ def empty_data_folder(temp_path):
 ##     MAIN FUNCTION
 ########################################################################################################################
         
-def join_files(temp_path,data_prefix):
+def join_files(temp_path: str, 
+               root_path: str,
+               data_prefix: str):
+    """Main function, joins files in temp folder together, deletes the temp folder afterwards
+    temp_path: path to where temporary data is kept
+    root_path: path of the folder
+    data_prefix: str, describes data content
+    """
     filename = temp_path + "*.csv"
     filenames = glob.glob(filename)
-    output_name = "../" + data_prefix + "_data.csv"
+    output_name = root_path + data_prefix + "_data.csv"
     
     print("Get data: ", data_prefix)
     df = get_df(filenames)
@@ -128,14 +125,16 @@ if __name__ == "__main__":
     print(keyword_list)
 
     data_prefix = keyword_list[0]
-    temp_path = "/home/commando/maris/hope-keyword-templates/tmp_" + data_prefix + "/"
+    root_path = "/home/commando/maris/hope-keyword-templates/"
+    temp_path = root_path + "tmp_" + data_prefix + "/"
     
     ###############################
     print("--------JOIN FILES--------")
+
     if len(os.listdir(temp_path)) == 0:
         print("Directory is empty")
     else:    
         print("Directory is not empty")
-        join_files(temp_path,data_prefix)
+        join_files(temp_path, root_path, data_prefix)
     empty_data_folder(temp_path)
     print("--------FINISHED----------")
