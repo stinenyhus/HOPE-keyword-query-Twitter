@@ -26,6 +26,8 @@ from spacy.lang.da import Danish
 
 from wordcloud import WordCloud
 
+from pathlib import Path
+
 ################################################################################################
 ## PREPARE DATA FUNCTIONS
 ################################################################################################
@@ -489,7 +491,7 @@ if __name__ == "__main__":
     print(keyword_list)
 
     data_prefix = keyword_list[0]
-    root_path = "/home/commando/maris/hope-keyword-templates/"
+    root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
     
     if small == "True":
         if_small = True
@@ -512,4 +514,6 @@ if __name__ == "__main__":
     print("---VISUALIZE---")
     print("START loading data: ", data_prefix)
     
+    
+    #Path("/fig").mkdir(parents=True, exist_ok=True)
     visualize(data_prefix, root_path, ysmooth_nr1, ysmooth_nr2, ysmooth_c1, ysmooth_c2)

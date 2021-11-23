@@ -33,7 +33,7 @@ def extract_keywords(row,
     row: pandas DataFrame row
     keyword_list: list of keywords (str)
     """
-    row["text"] = row["text"].astype(str)
+    #row["text"] = row["text"].astype(str)
     tweet = row["text"].lower()
     res = [ele for ele in keyword_list if(ele in tweet)] 
     return res
@@ -251,7 +251,7 @@ if __name__ == "__main__":
         pathname = '/data/001_twitter_hope/preprocessed/da/*.ndjson'
         mega_path = glob.glob(pathname)
     
-    root_path = "/home/commando/maris/hope-keyword-templates/"
+    root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
     ###############################
     print("--------EXTRACT DATA--------")
     extract_data(keyword_list, data_prefix, mega_path, root_path, from_date, to_date)

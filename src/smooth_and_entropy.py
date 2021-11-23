@@ -265,7 +265,7 @@ if __name__ == "__main__":
     ic(keyword_list)
 
     data_prefix = keyword_list[0]
-    root_path = "/home/commando/maris/hope-keyword-templates/"
+    root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
     
     if small == "True":
         if_small = True

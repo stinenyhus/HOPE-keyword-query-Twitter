@@ -58,13 +58,13 @@ def remove_quote_tweets(df):
     """
     df["text"] = df["text"].astype(str)
     df["mentioneless_text"] = df.apply(lambda row: remove_mentions(row), axis = 1)
-    print("Generated mentioneless texts")
+    # print("Generated mentioneless texts")
     df["text50"] = df["mentioneless_text"].str[0:50]
     
     df["dupe50"] = df["text50"].duplicated(keep = "first")
 
-    print("Length of quote tweets: ")
-    ic(len(df[df["dupe50"] == True]))
+    # print("Length of quote tweets: ")
+    # ic(len(df[df["dupe50"] == True]))
     
     df = df[df["dupe50"] == False].reset_index()
     return df
@@ -180,7 +180,7 @@ if __name__ == "__main__":
     print(keyword_list)
 
     data_prefix = keyword_list[0]
-    root_path = "/home/commando/maris/hope-keyword-templates/"
+    root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
     
     ############################
     print("---PREPROCESS STATS---")

@@ -125,7 +125,7 @@ if __name__ == "__main__":
     print(keyword_list)
 
     data_prefix = keyword_list[0]
-    root_path = "/home/commando/maris/hope-keyword-templates/"
+    root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
     temp_path = root_path + "tmp_" + data_prefix + "/"
     
     ###############################
