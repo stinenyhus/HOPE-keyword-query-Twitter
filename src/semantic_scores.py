@@ -22,6 +22,7 @@ def semantic_scores(data_prefix: str,
     root_path: path to where the data is saved to
     """
     filename = root_path + data_prefix + "_data_pre.csv"
+    filename = f'{root_path}{data_prefix}_files/{data_prefix}_data_pre.csv'
     sent_df = pd.read_csv(filename)
     print(sent_df.head())
     
@@ -34,7 +35,8 @@ def semantic_scores(data_prefix: str,
     sent_df = pd.concat([sent_df, out], axis=1).dropna()
     print("Joining SA results")
 
-    filename_out = root_path + data_prefix + "_vis.csv"
+    # filename_out = root_path + data_prefix + "_vis.csv"
+    filename_out = f'{root_path}{data_prefix}_files/{data_prefix}_vis.csv'
     sent_df.to_csv(filename_out, index = False)
 
 ########################################################################################################################

@@ -54,8 +54,9 @@ def join_files(temp_path: str,
     """
     filename = temp_path + "*.csv"
     filenames = glob.glob(filename)
-    output_name = root_path + data_prefix + "_data.csv"
-    
+    # output_name = root_path + data_prefix + "_data.csv"
+    output_name = f'{root_path}{data_prefix}_files/{data_prefix}_data.csv'
+
     print("Get data: ", data_prefix)
     df = get_df(filenames)
     df = df.rename(columns = {0:"0", 1:"1", 2:"2", 3:"3"})

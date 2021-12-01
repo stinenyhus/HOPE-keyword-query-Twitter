@@ -167,7 +167,8 @@ def smooth_and_entropy(data_prefix: str,
     if_small=True
     """
     print("Read in data, prepare")
-    vis_file = root_path + data_prefix + "_vis.csv"
+    # vis_file = root_path + data_prefix + "_vis.csv"
+    vis_file = f'{root_path}{data_prefix}_files/{data_prefix}_vis.csv'
     df = pd.read_csv(vis_file)
     df = df.sort_values("created_at")
     print(len(df))
@@ -204,7 +205,8 @@ def smooth_and_entropy(data_prefix: str,
     if if_nroftweets:
         comment.append("_nroftweets")
     
-    outfile_name = root_path + data_prefix + "_smoothed.csv"
+    # outfile_name = root_path + data_prefix + "_smoothed.csv"
+    outfile_name = f'{root_path}{data_prefix}_files/{data_prefix}_smoothed.csv'
     df.to_csv(outfile_name, index=False)
     del df
 

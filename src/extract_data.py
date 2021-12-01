@@ -84,7 +84,8 @@ def extract_data(keyword_list:list,
     print("START data extraction for keywords: ", keyword_list)
     print("---")
     
-    output_name = root_path + data_prefix + "_data.csv"
+    # output_name = root_path + data_prefix + "_data.csv"
+    output_name = f'{root_path}{data_prefix}_files/{data_prefix}_data.csv'
     print("Does the file already exist?: ", path.exists(output_name))
     
     if path.exists(output_name):
