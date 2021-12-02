@@ -14,7 +14,7 @@ from typing import List, Optional
 ## define functions ##
 def append_list_as_row(file_name, list_of_elem):
     # Open file in append mode
-    with open(file_name, 'a+', newline='') as write_obj:
+    with open(file_name, 'a+', newline='', encoding="utf-8") as write_obj:
         # Create a writer object from csv module
         csv_writer = writer(write_obj)
         # Add contents of list as last row in the csv file
@@ -76,7 +76,7 @@ def ndjson_to_csv(in_file: str,
         out = pd.DataFrame(columns = cols_in_csv)
     else:
         out = pd.DataFrame(columns = cols)
-    out.to_csv(out_filepath)
+    out.to_csv(out_filepath, encoding="utf-8")
     
     start_time = time.time()
     j = 0
@@ -122,7 +122,7 @@ def remove_bot_tweets(in_file: str, out_file: str):
     df = pd.read_csv(in_filepath, index_col=[0])
 
     print('identifying bots')
-    df = identify_bots(df, 'text_without_mentions')
+    df = identify_bots(df, 'text_mentionless')
 
     df_nobots = df[df["dupe50"] == False].reset_index().drop(["dupe50", "index"], axis=1)
     df_bots = df[df["dupe50"] == True].reset_index().drop(["dupe50", "index"], axis=1)
@@ -139,7 +139,7 @@ if __name__=='__main__':
     cols_in_csv = cols + ['retweet_count', 'reply_count', 'like_count', 'quote_count',
                           'mentions', 'text_mentionless']
     cols_within_cols = ['public_metrics']
-    out_file = 'goldstandard_engagementdata_test'
+    out_file = 'goldstandard_engagementdata_all'
     
     # ndjson_to_csv(in_file, out_file, cols, 
     #               cols_in_csv=cols_in_csv, 
@@ -147,4 +147,4 @@ if __name__=='__main__':
     #               cols_within_cols=cols_within_cols,
     #               rm_mentions=True)
     
-    # remove_bot_tweets(out_file, out_file[:-4])
+    remove_bot_tweets(out_file, out_file[:-4])
