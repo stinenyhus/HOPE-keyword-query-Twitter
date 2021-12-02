@@ -177,7 +177,7 @@ def set_late_plot_settings(fig, ax1, if_dates):
 
     ax1.grid(color='darkgrey', linestyle='-', linewidth=0.5, which= "both")
     if if_dates:
-        # Define the date format
+        # Define the date  format
         ax1.xaxis_date()
         date_form = mdates.DateFormatter("%d-%b")
         ax1.xaxis.set_major_formatter(date_form)
@@ -206,7 +206,7 @@ def vis_keyword_mentions_freq(data_prefix, root_path, df, title, ysmooth_nr1, ys
         
     fig, ax1 = set_late_plot_settings(fig, ax1, if_dates = True)
 
-    plot_name = "../fig/" + f'{data_prefix}/' + data_prefix + ysmooth_nr1 + "_freq_mentions.png
+    plot_name = "../fig/" + f'{data_prefix}/' + data_prefix + ysmooth_nr1 + "_freq_mentions.png"
     # plot_name = "../fig/" + data_prefix + ysmooth_nr1 + "_freq_mentions.png"
     fig.savefig(plot_name, bbox_inches='tight')
     

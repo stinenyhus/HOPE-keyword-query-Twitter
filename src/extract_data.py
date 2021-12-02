@@ -254,5 +254,18 @@ if __name__ == "__main__":
     
     root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
     ###############################
+    print("------CREATING FOLDERS------")
+    files_path = f'{root_path}{data_prefix}_files/'
+    if not os.path.exists(files_path):
+        os.makedirs(files_path)
+        print(f'Made folder: {files_path}')
+    
+    fig_path = f'{root_path}fig/{data_prefix}'
+    if not os.path.exists(fig_path):
+        os.makedirs(fig_path)
+        print(f'Made folder: {fig_path}')
+    
+    print('done creating folders')
+    
     print("--------EXTRACT DATA--------")
     extract_data(keyword_list, data_prefix, mega_path, root_path, from_date, to_date)
