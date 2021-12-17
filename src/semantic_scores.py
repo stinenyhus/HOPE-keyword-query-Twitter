@@ -7,7 +7,7 @@ Get Vader sentiment scores for texts
 
 import text_to_x as ttx
 import pandas as pd
-import getopt, sys
+import getopt, sys, os
 import re
 import glob
 
@@ -21,10 +21,10 @@ def semantic_scores(data_prefix: str,
     data_prefix: indicates which dataset it is
     root_path: path to where the data is saved to
     """
-    filename = root_path + data_prefix + "_data_pre.csv"
-    filename = f'{root_path}{data_prefix}_files/{data_prefix}_data_pre.csv'
+    # filename = root_path + data_prefix + "_data_pre.csv"
+    filename = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_data_bert.csv')
     sent_df = pd.read_csv(filename)
-    print(sent_df.head())
+    print(sent_df.head()) 
     
     sent_df["mentioneless_text"] = sent_df["mentioneless_text"].astype(str)
 
@@ -95,7 +95,8 @@ if __name__ == "__main__":
     print(keyword_list)
 
     data_prefix = keyword_list[0]
-    root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
+    # root_path = "/home/stine/HOPE-keyword-query-Twitter/"
+    root_path = os.path.join("..") 
     
     ############################
     print("---------SENTIMENT ANALYSIS----------")

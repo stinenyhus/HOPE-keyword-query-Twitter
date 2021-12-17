@@ -168,7 +168,7 @@ def smooth_and_entropy(data_prefix: str,
     """
     print("Read in data, prepare")
     # vis_file = root_path + data_prefix + "_vis.csv"
-    vis_file = f'{root_path}{data_prefix}_files/{data_prefix}_vis.csv'
+    vis_file = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_vis.csv')
     df = pd.read_csv(vis_file)
     df = df.sort_values("created_at")
     print(len(df))
@@ -206,7 +206,7 @@ def smooth_and_entropy(data_prefix: str,
         comment.append("_nroftweets")
     
     # outfile_name = root_path + data_prefix + "_smoothed.csv"
-    outfile_name = f'{root_path}{data_prefix}_files/{data_prefix}_smoothed.csv'
+    outfile_name = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_smoothed.csv')
     df.to_csv(outfile_name, index=False)
     del df
 
@@ -267,7 +267,8 @@ if __name__ == "__main__":
     ic(keyword_list)
 
     data_prefix = keyword_list[0]
-    root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
+    # root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
+    root_path = os.path.join("..") 
     
     if small == "True":
         if_small = True
