@@ -17,7 +17,7 @@ import matplotlib.dates as mdates
 
 import string
 from string import digits
-
+import os
 import nltk
 from nltk import bigrams
 
@@ -207,6 +207,7 @@ def vis_keyword_mentions_freq(data_prefix, root_path, df, title, ysmooth_nr1, ys
     fig, ax1 = set_late_plot_settings(fig, ax1, if_dates = True)
 
     plot_name = "../fig/" + f'{data_prefix}/' + data_prefix + ysmooth_nr1 + "_freq_mentions.png"
+    plot_name = os.path.join(root_path, "fig", f'{data_prefix}', f'{data_prefix}_{ysmooth_nr1}_freq_mentions.png')
     # plot_name = "../fig/" + data_prefix + ysmooth_nr1 + "_freq_mentions.png"
     fig.savefig(plot_name, bbox_inches='tight')
     
@@ -223,7 +224,7 @@ def vis_keyword_mentions_freq(data_prefix, root_path, df, title, ysmooth_nr1, ys
     fig, ax1 = set_late_plot_settings(fig, ax1, if_dates = True)
 
     # plot_name = root_path + "fig/" + data_prefix + ysmooth_nr2 + "_freq_mentions.png"
-    plot_name = root_path + "fig/" + f'{data_prefix}/' + data_prefix + ysmooth_nr2 + "_freq_mentions.png"
+    plot_name = os.path.join(root_path, "fig", f'{data_prefix}', f'{data_prefix}_{ysmooth_nr2}_freq_mentions.png')
     fig.savefig(plot_name, bbox_inches='tight')
     print("Save figure done\n------------------\n")
 
@@ -240,7 +241,7 @@ def vis_hashtag_freq(data_prefix, root_path, df, nr_of_hashtags):
 
     fig, ax1 = set_late_barplot_settings(fig, ax1)
 
-    plot_name = root_path + "fig/" + f'{data_prefix}/' + data_prefix + "_frequent_hashtags.png"
+    plot_name = os.path.join(root_path, "fig", f'{data_prefix}', f'{data_prefix}_frequent_hashtags.png')
     # plot_name = root_path + "fig/" + data_prefix + "_frequent_hashtags.png"
     fig.savefig(plot_name, bbox_inches='tight')
     print("Save figure done\n------------------\n")
@@ -260,7 +261,7 @@ def vis_sentiment_compound(data_prefix, root_path, df, ysmooth_c1, ysmooth_c2):
     fig, ax1 = set_late_plot_settings(fig, ax1, if_dates = True)
     ax1.set(ylim=(-1, 1))
 
-    plot_name = root_path + "fig/" + f'{data_prefix}/' + data_prefix + ysmooth_c1 + "_sentiment_compound.png"
+    plot_name = os.path.join(root_path, "fig", f'{data_prefix}', f'{data_prefix}{ysmooth_c1}_sentiment_compound.png')
     # plot_name = root_path + "fig/" + data_prefix + ysmooth_c1 + "_sentiment_compound.png"
     fig.savefig(plot_name, bbox_inches='tight')
     
@@ -279,7 +280,7 @@ def vis_sentiment_compound(data_prefix, root_path, df, ysmooth_c1, ysmooth_c2):
     ax1.set(ylim=(-1, 1))
 
     # plot_name = root_path + "fig/" + data_prefix + ysmooth_c2 + "_sentiment_compound.png"
-    plot_name = root_path + "fig/" + f'{data_prefix}/' + data_prefix + ysmooth_c2 + "_sentiment_compound.png"
+    plot_name = os.path.join(root_path, "fig", f'{data_prefix}', f'{data_prefix}{ysmooth_c2}_sentiment_compound.png')
     fig.savefig(plot_name, bbox_inches='tight')
     print("Save figure done\n------------------\n")
 
@@ -297,8 +298,7 @@ def vis_word_freq(data_prefix, root_path, word_freq, nr_of_words):
 
     fig, ax1 = set_late_barplot_settings(fig, ax1)
 
-    plot_name = root_path + "fig/" + f'{data_prefix}/' + data_prefix + "_word_frequency.png"
-    # plot_name = root_path + "fig/" + data_prefix + "_word_frequency.png"
+    plot_name = os.path.join(root_path, "fig", f'{data_prefix}', f'{data_prefix}_word_frequency.png')
     fig.savefig(plot_name, bbox_inches='tight')
     print("Save figure done\n------------------\n")
     
@@ -308,8 +308,7 @@ def vis_word_cloud(data_prefix, root_path, wordcloud):
     plt.imshow(wordcloud) 
     # No axis details
     plt.axis("off");
-    plot_name = root_path + "fig/" + f'{data_prefix}/' + data_prefix + "_word_cloud.png"
-    # plot_name = root_path + "fig/" + data_prefix + "_word_cloud.png"
+    plot_name = os.path.join(root_path, "fig", f'{data_prefix}', f'{data_prefix}_word_cloud.png')
     plt.savefig(plot_name, bbox_inches='tight')
     
 # Aggregate a frequency DF
@@ -382,8 +381,7 @@ def vis_bigram_graph(data_prefix, root_path, d, graph_layout_number):
     fig.patch.set_visible(False)
     ax.axis('off')
 
-    # plot_name = root_path + "fig/" + str(data_prefix) + "_bigram_graph_k" + str(graph_layout_number) + ".png"
-    plot_name = root_path + "fig/"  + f'{data_prefix}/' + str(data_prefix) + "_bigram_graph_k" + str(graph_layout_number) + ".png"
+    plot_name = os.path.join(root_path, "fig", f'{data_prefix}', f'{data_prefix}_bigram_graph_k{graph_layout_number}.png')
     fig.savefig(plot_name, dpi=150, bbox_inches='tight')
     print("Save figure done\n------------------\n")
 
@@ -392,8 +390,8 @@ def vis_bigram_graph(data_prefix, root_path, d, graph_layout_number):
 ########################################################################################################################
 
 def visualize(data_prefix, root_path, ysmooth_nr1, ysmooth_nr2, ysmooth_c1, ysmooth_c2):
-    # filename = root_path + data_prefix + "_smoothed.csv"
-    filename = f'{root_path}{data_prefix}_files/{data_prefix}_smoothed.csv'
+    # filename = f'{root_path}{data_prefix}_files/{data_prefix}_smoothed.csv'
+    filename = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_smoothed.csv')
     df = pd.read_csv(filename)
     
     # Create a column which is just date
@@ -443,7 +441,8 @@ def visualize(data_prefix, root_path, ysmooth_nr1, ysmooth_nr2, ysmooth_c1, ysmo
     print(df.head())
     print(df.columns)
     # output_name = root_path + data_prefix + "_final.csv"
-    output_name = f'{root_path}{data_prefix}_files/{data_prefix}_final.csv'
+    # output_name = f'{root_path}{data_prefix}_files/{data_prefix}_final.csv'
+    output_name = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_final.csv')
     df.to_csv(output_name,index = False)
     
 ########################################################################################################################
@@ -502,7 +501,8 @@ if __name__ == "__main__":
     print(keyword_list)
 
     data_prefix = keyword_list[0]
-    root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
+    # root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
+    root_path = os.path.join("..") 
     
     if small == "True":
         if_small = True
@@ -519,12 +519,11 @@ if __name__ == "__main__":
         ysmooth_nr1 = "s2000_nr_of_tweets"
         ysmooth_nr2 = "s5000_nr_of_tweets"
         ysmooth_c1 = "s2000_compound"
-        ysmooth_c2 = "s5000_compound"
+        ysmooth_c2 = "s5000_compound" 
     
     ###############################
     print("---VISUALIZE---")
     print("START loading data: ", data_prefix)
-    
     
     #Path("/fig").mkdir(parents=True, exist_ok=True)
     visualize(data_prefix, root_path, ysmooth_nr1, ysmooth_nr2, ysmooth_c1, ysmooth_c2)

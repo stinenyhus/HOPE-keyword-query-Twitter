@@ -4,7 +4,7 @@ Retrieve initial stats of data and preprocess
 
 import pandas as pd
 from icecream import ic
-import getopt, sys
+import getopt, sys, os
 import re
 import glob
 
@@ -182,7 +182,8 @@ if __name__ == "__main__":
     print(keyword_list)
 
     data_prefix = keyword_list[0]
-    root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
+    # root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
+    root_path = os.path.join("..") 
     
     ############################
     print("---PREPROCESS STATS---")
