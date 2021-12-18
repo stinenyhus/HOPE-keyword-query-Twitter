@@ -96,7 +96,8 @@ def extract_data(keyword_list:list,
     ic(mega_path)
     
     # Create a directory for these files
-    temp_path = root_path + "tmp_" + data_prefix + "/"
+    # temp_path = root_path + "tmp_" + data_prefix + "/"
+    temp_path = os.path.join(root_path, f'tmp_{data_prefix}')
 
     try:
         os.mkdir(temp_path)
@@ -123,7 +124,7 @@ def extract_data(keyword_list:list,
         df = df[df["search_keyword"] != "[]"].drop_duplicates().reset_index(drop=True)
                 
         if len(df) > 0:
-            filename = temp_path + "/" + data_prefix + "_" + file_name + ".csv"
+            filename = os.path.join(temp_path, f'{data_prefix}_{file_name}.csv')
             df.to_csv(filename, index = False)
 
             print("Save of " + file_name + " done")

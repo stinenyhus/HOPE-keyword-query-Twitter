@@ -52,10 +52,10 @@ def join_files(temp_path: str,
     root_path: path of the folder
     data_prefix: str, describes data content
     """
-    filename = temp_path + "*.csv"
+    filename = os.path.join(temp_path, "*.csv")
     filenames = glob.glob(filename)
     # output_name = root_path + data_prefix + "_data.csv"
-    output_name = f'{root_path}{data_prefix}_files/{data_prefix}_data.csv'
+    output_name = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_data.csv')
 
     print("Get data: ", data_prefix)
     df = get_df(filenames)
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     data_prefix = keyword_list[0]
     # root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
     root_path = os.path.join("..") 
-    temp_path = root_path + "tmp_" + data_prefix + "/"
+    temp_path = os.path.join(root_path, f"tmp_{data_prefix}")
     
     ###############################
     print("--------JOIN FILES--------")

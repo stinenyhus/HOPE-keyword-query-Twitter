@@ -94,7 +94,7 @@ def preprocess_stats(data_prefix: str,
     from_date: date from which 
     """
     # input_data = root_path + data_prefix + "_data.csv"
-    input_data = f'{root_path}{data_prefix}_files/{data_prefix}_data.csv'
+    input_data = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_data.csv')
 
     df = pd.read_csv(input_data,lineterminator='\n')[1:].rename(columns={"0":"created_at", "1":"id", "2":"text", "3":"search_keyword"})
     print(df.head())
@@ -123,7 +123,7 @@ def preprocess_stats(data_prefix: str,
     print(df3.groupby(["search_keyword"]).count().reset_index())
     
     # out_filename = root_path + data_prefix + "_data_pre.csv"
-    out_filename = f'{root_path}{data_prefix}_files/{data_prefix}_data_pre.csv'
+    out_filename = os.path.join(root_path, f'{data_prefix}_files',f'{data_prefix}_data_pre.csv')
     df3.to_csv(out_filename, index=False)
     
 ########################################################################################################################
