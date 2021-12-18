@@ -96,7 +96,12 @@ def extract_data(keyword_list:list,
     ic(mega_path)
     
     # Create a directory for these files
+<<<<<<< HEAD
     temp_path = os.path.join(root_path, f"tmp_{data_prefix}")
+=======
+    # temp_path = root_path + "tmp_" + data_prefix + "/"
+    temp_path = os.path.join(root_path, f'tmp_{data_prefix}')
+>>>>>>> bd9e5e7f0efe67b309b4eceb33d5bb55f21a2453
 
     try:
         os.mkdir(temp_path)
@@ -124,7 +129,10 @@ def extract_data(keyword_list:list,
                 
         if len(df) > 0:
             filename = os.path.join(temp_path, f'{data_prefix}_{file_name}.csv')
+<<<<<<< HEAD
 
+=======
+>>>>>>> bd9e5e7f0efe67b309b4eceb33d5bb55f21a2453
             df.to_csv(filename, index = False)
 
             print("Save of " + file_name + " done")

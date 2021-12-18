@@ -128,7 +128,7 @@ if __name__ == "__main__":
     data_prefix = keyword_list[0]
     # root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
     root_path = os.path.join("..") 
-    temp_path = os.path.join(root_path, f'tmp_{data_prefix}')
+    temp_path = os.path.join(root_path, f"tmp_{data_prefix}")
     
     ###############################
     print("--------JOIN FILES--------")
