@@ -36,7 +36,7 @@ def semantic_scores(data_prefix: str,
     print("Joining SA results")
 
     # filename_out = root_path + data_prefix + "_vis.csv"
-    filename_out = f'{root_path}{data_prefix}_files/{data_prefix}_vis.csv'
+    filename_out = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_vis.csv')
     sent_df.to_csv(filename_out, index = False)
 
 ########################################################################################################################
