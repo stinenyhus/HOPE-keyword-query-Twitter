@@ -206,7 +206,6 @@ def vis_keyword_mentions_freq(data_prefix, root_path, df, title, ysmooth_nr1, ys
         
     fig, ax1 = set_late_plot_settings(fig, ax1, if_dates = True)
 
-    plot_name = "../fig/" + f'{data_prefix}/' + data_prefix + ysmooth_nr1 + "_freq_mentions.png"
     plot_name = os.path.join(root_path, "fig", f'{data_prefix}', f'{data_prefix}_{ysmooth_nr1}_freq_mentions.png')
     # plot_name = "../fig/" + data_prefix + ysmooth_nr1 + "_freq_mentions.png"
     fig.savefig(plot_name, bbox_inches='tight')

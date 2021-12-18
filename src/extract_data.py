@@ -85,7 +85,7 @@ def extract_data(keyword_list:list,
     print("---")
     
     # output_name = root_path + data_prefix + "_data.csv"
-    output_name = f'{root_path}{data_prefix}_files/{data_prefix}_data.csv'
+    output_name = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_data.csv')
     print("Does the file already exist?: ", path.exists(output_name))
     
     if path.exists(output_name):
@@ -96,7 +96,7 @@ def extract_data(keyword_list:list,
     ic(mega_path)
     
     # Create a directory for these files
-    temp_path = root_path + "tmp_" + data_prefix + "/"
+    temp_path = os.path.join(root_path, f"tmp_{data_prefix}")
 
     try:
         os.mkdir(temp_path)
@@ -123,7 +123,8 @@ def extract_data(keyword_list:list,
         df = df[df["search_keyword"] != "[]"].drop_duplicates().reset_index(drop=True)
                 
         if len(df) > 0:
-            filename = temp_path + "/" + data_prefix + "_" + file_name + ".csv"
+            filename = os.path.join(temp_path, f'{data_prefix}_{file_name}.csv')
+
             df.to_csv(filename, index = False)
 
             print("Save of " + file_name + " done")
@@ -191,7 +192,8 @@ if __name__ == "__main__":
     data_prefix = keyword_list[0]
 
     if test_limit:
-        pathname = '/data/001_twitter_hope/preprocessed/da/td_' + str(test_limit) + '*.ndjson'
+        # pathname = '/data/001_twitter_hope/preprocessed/da/td_' + str(test_limit) + '*.ndjson'
+        pathname = os.path.join("data", "001_twitter_hope", "preprocessed", "da", f"td_{test_limit}*.ndjson")
         ic(pathname)
         mega_path = glob.glob(pathname)
         ic(mega_path)
@@ -199,6 +201,7 @@ if __name__ == "__main__":
         ic(from_date, to_date)
         ic(type(from_date), type(to_date))
         pathname = '/data/001_twitter_hope/preprocessed/da/*.ndjson'
+        pathname = os.path.join("data", "001_twitter_hope", "preprocessed", "da", "*.ndjson")
         
         min_date = remove_date_dash(from_date)
         max_date = remove_date_dash(to_date)
@@ -219,7 +222,7 @@ if __name__ == "__main__":
                 mega_path.remove(element)
                 
     elif len(from_date) > 1:
-        pathname = '/data/001_twitter_hope/preprocessed/da/*.ndjson'
+        pathname = os.path.join("data", "001_twitter_hope", "preprocessed", "da", "*.ndjson")
         min_date = remove_date_dash(from_date)
         mega_path = glob.glob(pathname)
         
@@ -234,7 +237,7 @@ if __name__ == "__main__":
                 mega_path.remove(element)
                 
     elif len(to_date) > 1:
-        pathname = '/data/001_twitter_hope/preprocessed/da/*.ndjson'
+        pathname = os.path.join("data", "001_twitter_hope", "preprocessed", "da", "*.ndjson")
         max_date = remove_date_dash(to_date)
         mega_path = glob.glob(pathname)
         
@@ -249,7 +252,7 @@ if __name__ == "__main__":
                 mega_path.remove(element)
     else:
         # Runs through all the files here, date does not matter
-        pathname = '/data/001_twitter_hope/preprocessed/da/*.ndjson'
+        pathname = os.path.join("data", "001_twitter_hope", "preprocessed", "da", "*.ndjson")
         mega_path = glob.glob(pathname)
     
     root_path = os.path.join("..") 
