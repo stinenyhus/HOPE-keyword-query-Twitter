@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import datetime as dt
 import math
 from collections import Counter
+from sklearn.preprocessing import StandardScaler
 
 import re
 import string
@@ -112,7 +113,7 @@ def center_entropy(df):
     df["centered_entropy"] = df["normalized_entropy"] - average_entropy
     return df
 
-def smooth_2000(df, if_compound, if_nroftweets, if_small):
+def smooth_2000(df, if_compound, if_nroftweets, if_bert, if_small):
     if if_compound:
         if if_small:
             print("Compound FWHM = 200")
@@ -127,9 +128,16 @@ def smooth_2000(df, if_compound, if_nroftweets, if_small):
         else:
             print("Nr FWHM = 2000")
             df["s2000_nr_of_tweets"] = gaussian_kernel(df["nr_of_tweets"], sigma = 1, fwhm = 2000)
+    if if_bert:
+        if if_small:
+            print("BERT FWHM = 200")
+            df["s200_polarity_score_z"] = gaussian_kernel(df["polarity_score_z"], sigma = 1, fwhm = 200)
+        else:
+            print("BERT FWHM = 2000")
+            df["s2000_polarity_score_z"] = gaussian_kernel(df["polarity_score_z"], sigma = 1, fwhm = 2000)
     return df
 
-def smooth_5000(df, if_compound, if_nroftweets, if_small):
+def smooth_5000(df, if_compound, if_nroftweets, if_bert, if_small):
     if if_compound:
         if if_small:
             print("Compound FWHM = 500")
@@ -144,6 +152,13 @@ def smooth_5000(df, if_compound, if_nroftweets, if_small):
         else:
             print("Nr FWHM = 5000")
             df["s5000_nr_of_tweets"] = gaussian_kernel(df["nr_of_tweets"], sigma = 1, fwhm = 5000)
+    if if_bert:
+        if if_small:
+            print("BERT FWHM = 500")
+            df["s500_polarity_score_z"] = gaussian_kernel(df["polarity_score_z"], sigma = 1, fwhm = 500)
+        else:
+            print("BERT FWHM = 5000")
+            df["s5000_polarity_score_z"] = gaussian_kernel(df["polarity_score_z"], sigma = 1, fwhm = 5000)
     return df
 
 ########################################################################################################################
@@ -155,6 +170,7 @@ def smooth_and_entropy(data_prefix: str,
                        from_date: str, 
                        if_compound: bool, 
                        if_nroftweets: bool, 
+                       if_bert: bool,
                        if_entropy: bool, 
                        if_small=True):
     """Main smoothing function, the processes that occur depend on the booleans
@@ -192,11 +208,15 @@ def smooth_and_entropy(data_prefix: str,
     df = center_compound(df)
     df = get_entropy(df)
     df = center_entropy(df)
+
+    if if_bert:
+        X = np.array(df["polarity_score"]).reshape(-1, 1)
+        df['polarity_score_z'] = StandardScaler().fit_transform(X)
     
     print("START SMOOTHING")
-    df = smooth_2000(df, if_compound, if_nroftweets, if_small)
+    df = smooth_2000(df, if_compound, if_nroftweets, if_bert, if_small)
     print("Smooth1 DONE")
-    df = smooth_5000(df, if_compound, if_nroftweets, if_small)
+    df = smooth_5000(df, if_compound, if_nroftweets, if_bert, if_small)
     print("Smooth2 DONE")
 
     comment = []
@@ -277,4 +297,6 @@ if __name__ == "__main__":
 
     ###############################
     print("--------SMOOTHING PIPELINE START--------")
-    smooth_and_entropy(data_prefix, root_path, from_date, if_compound = True, if_nroftweets = True, if_entropy=False, if_small = if_small)
+    smooth_and_entropy(data_prefix, root_path, from_date, 
+                       if_compound = True, if_nroftweets = True, 
+                       if_bert=True, if_entropy=False, if_small = if_small)
