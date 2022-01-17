@@ -191,8 +191,6 @@ def smooth_and_entropy(data_prefix: str,
     df["date"] = pd.to_datetime(df["created_at"], utc=True).dt.strftime('%Y-%m-%d')
     df["date"] = pd.to_datetime(df["date"])
     
-    df["date"] = pd.to_datetime(df["date"])
-    
     df = apply_date_mask(df, from_date)
     if len(df) < 1:
         print("ERROR: Apply a from_date in the bash command with e.g. '-f 2021-01-01'.")
