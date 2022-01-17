@@ -15,3 +15,4 @@ python semantic_scores.py $* #input _data_pre, output _vis
 source /home/commando/.virtualenvs/ss/bin/activate
 python smooth_and_entropy.py $*
 python visualize.py $*
+python streamlit_prep.py $*

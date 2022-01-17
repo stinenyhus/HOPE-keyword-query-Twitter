@@ -1,8 +1,11 @@
 *.png
 *.csv
+*.pkl
+*.log
 src/logs/*
 src/nohup.out
 .ipynb_checkpoints/
 explore_data.ipynb
 makrel_mette/*
 notebooks/old_notebooks/*
+notebooks/streamlit.ipynb
