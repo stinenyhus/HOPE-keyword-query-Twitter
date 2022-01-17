@@ -49,7 +49,10 @@ def bert_scores(data_prefix: str, out_path:str):
                                 "polarity_prob"])
     out.to_csv(f'{out_path}.csv')
 
+    # Ensure that all texts are strings to avoid float error (hopefully)
+    df["mentioneless_text"] = [str(text) for text in df["mentioneless_text"]]
     docs = nlp.pipe(df["mentioneless_text"])
+
     emo_dict = {"Emotional": 1,
                 "No emotion": 0}
     pol_dict = {"positive": 1,

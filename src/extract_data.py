@@ -12,6 +12,7 @@ import os
 import os.path
 from os import path
 from icecream import ic
+from configparser import ConfigParser
 
 ########################################################################################################################
 ##     DEFINE FUNCTIONS
@@ -144,7 +145,10 @@ def main(argv):
     test_limit = '' # this is so that it's possible to test the system on just one day/month of data
     small = ''
     try:
-        opts, args = getopt.getopt(argv,"hk:f:t:l:s:")
+        opts, args = getopt.getopt(argv,"hk:")
+        config = ConfigParser()
+        config.read("keyword_config.ini")
+        
     except getopt.GetoptError:
         print('test.py -k <keyword1,keyword2> -f <2020-01-20> -t <2020-12-31> -l <20200101>')
         sys.exit(2)
@@ -153,19 +157,25 @@ def main(argv):
             print('test.py -keywords <keyword1,keyword2> -from_date <2020-01-20> -to_date <2020-12-31> -test_limit <20200101>')
             sys.exit()
         elif opt in "-k":
-            keywords = arg
-        elif opt in "-f":
-            from_date = arg
-            print('Date specifics: from ', from_date)
-        elif opt in "-t":
-            to_date = arg
-            print(' to ', to_date)
-        elif opt in "-l":
-            test_limit = arg
-            print('TESTING: ', test_limit)
-        elif opt in "-s":
-            small = arg
-            print('Small: ', small)
+            key = arg
+            keywords = config[f'{key}']["keywords"]
+            from_date = config[f'{key}']["from_date"]
+            to_date = config[f'{key}']["to_date"]
+            test_limit = config[f'{key}']["test_limit"]
+            small = config[f'{key}']["small"]
+            print(f'Running pipeline with key: {key}, keywords: {keywords} from {from_date} and small = {small}')
+        # elif opt in "-f":
+        #     from_date = arg
+        #     print('Date specifics: from ', from_date)
+        # elif opt in "-t":
+        #     to_date = arg
+        #     print(' to ', to_date)
+        # elif opt in "-l":
+        #     test_limit = arg
+        #     print('TESTING: ', test_limit)
+        # elif opt in "-s":
+        #     small = arg
+        #     print('Small: ', small)
     print('Input keywords are ', keywords)
     return keywords, test_limit, from_date, to_date
 
@@ -270,4 +280,4 @@ if __name__ == "__main__":
     print('done creating folders')
     
     print("--------EXTRACT DATA--------")
-    extract_data(keyword_list, data_prefix, mega_path, root_path, from_date, to_date)
+    extract_data(keyword_list, data_prefix, mega_path, root_path, from_date, to_date) 
