@@ -100,7 +100,7 @@ def main(argv):
             to_date = config[f'{key}']["to_date"]
             test_limit = config[f'{key}']["test_limit"]
             small = config[f'{key}']["small"]
-            print(f'Running pipeline with key: {key}, keywords: {keywords} from {from_date} and small = {small}')
+            print(f'Joining files using key: {key}, keywords: {keywords} from {from_date} and small = {small}')
     # try:
     #     opts, args = getopt.getopt(argv,"hk:f:t:l:s:")
     # except getopt.GetoptError:
