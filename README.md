@@ -2,6 +2,8 @@
 
 ### Author
 Maris Sala
+Sara Møller Østergaard
+Stine Nyhus Larsen
 
 ## Examples
 An example Jupyter Notebook visualizing the different parts of the code has been added. To check out how vaccines, AstraZeneca, Pfizer, and Moderna mentions are represented in Danish Twitter, check out ``notebooks/vaccines-az-pfizer-moderna.ipynb``
@@ -20,6 +22,15 @@ The first pipeline has the second implemented inside of it as well now.
 ### 1. Querying Twitter for keywords
 
 Based on keywords (and possibly date specifics) this pipeline extracts tweets from our Twitter corpus where the keywords match with texts.
+Queries are created by adding an entry in the .ini config file. 
+What should be provided is
+
+[key] (what the query entry should be called - either same as first query term or name)
+keywords = keyword1,keyword2 (keyword separated only by comma, not space - spaces within keywords are created with ~, such as mette~f)
+from_date = yyyy-mm-dd (date for when quering should start)
+to_date = yyyy-mm-dd/None (date for when quering should end - if not provided, all tweets after from_date are used)
+test_limit = ???
+small = bool (True or False - wether or not the query is big. So far, only corona and vaccine are big)
 
 ```bash
 nohup bash src/pipeline.sh -k keyword1,keyword2 -f 2020-12-01 -t 2020-12-30 -s True &> logs/keyword1_[today's_date].log &
