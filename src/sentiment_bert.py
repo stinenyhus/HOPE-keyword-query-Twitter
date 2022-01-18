@@ -10,6 +10,7 @@ import getopt, sys
 import re
 import ssl
 from dacy.sentiment import add_bertemotion_emo, add_bertemotion_laden, add_berttone_polarity
+from configparser import ConfigParser
 
 
 
@@ -49,7 +50,10 @@ def bert_scores(data_prefix: str, out_path:str):
                                 "polarity_prob"])
     out.to_csv(f'{out_path}.csv')
 
+    # Ensure that all texts are strings to avoid float error (hopefully)
+    df["mentioneless_text"] = [str(text) for text in df["mentioneless_text"]]
     docs = nlp.pipe(df["mentioneless_text"])
+
     emo_dict = {"Emotional": 1,
                 "No emotion": 0}
     pol_dict = {"positive": 1,
@@ -85,7 +89,10 @@ def main(argv):
     test_limit = '' # this is so that it's possible to test the system on just one day/month of data
     small = ''
     try:
-        opts, args = getopt.getopt(argv,"hk:f:t:l:s:")
+        opts, args = getopt.getopt(argv,"hk:")
+        config = ConfigParser()
+        config.read("keyword_config.ini")
+        
     except getopt.GetoptError:
         print('test.py -k <keyword1,keyword2> -f <2020-01-20> -t <2020-12-31> -l <20200101>')
         sys.exit(2)
@@ -94,20 +101,13 @@ def main(argv):
             print('test.py -keywords <keyword1,keyword2> -from_date <2020-01-20> -to_date <2020-12-31> -test_limit <20200101>')
             sys.exit()
         elif opt in "-k":
-            keywords = arg
-        elif opt in "-f":
-            from_date = arg
-            print('Date specifics: from ', from_date)
-        elif opt in "-t":
-            to_date = arg
-            print(' to ', to_date)
-        elif opt in "-l":
-            test_limit = arg
-            print('TESTING: ', test_limit)
-        elif opt in "-s":
-            small = arg
-            print('Small: ', small)
-    print('Input keywords are ', keywords)
+            key = arg
+            keywords = config[f'{key}']["keywords"]
+            from_date = config[f'{key}']["from_date"]
+            to_date = config[f'{key}']["to_date"]
+            test_limit = config[f'{key}']["test_limit"]
+            small = config[f'{key}']["small"]
+            print(f'Running BERT models with key: {key}, keywords: {keywords} from {from_date} and small = {small}')
     return keywords
 
 
