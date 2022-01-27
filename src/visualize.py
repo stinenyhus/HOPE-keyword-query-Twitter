@@ -24,7 +24,7 @@ from nltk import bigrams
 import spacy
 from spacy.lang.da import Danish
 
-from wordcloud import WordCloud
+from wordcloud import WordCloud, STOPWORDS
 
 from pathlib import Path
 from configparser import ConfigParser
@@ -414,8 +414,7 @@ def visualize(data_prefix, root_path, ysmooth_nr1, ysmooth_nr2, ysmooth_c1, ysmo
     # Sentiment Analysis
     # Rolling average
     #freq_df['compound_7day_ave'] = df.compound.rolling(7).mean().shift(-3)
-    if language == 'da':
-        vis_sentiment_compound(data_prefix, root_path, df, ysmooth_c1, ysmooth_c2)
+    vis_sentiment_compound(data_prefix, root_path, df, ysmooth_c1, ysmooth_c2)
     
     ## WORD FREQUENCY
     print("Get word frequency")
@@ -427,12 +426,14 @@ def visualize(data_prefix, root_path, ysmooth_nr1, ysmooth_nr2, ysmooth_c1, ysmo
     if language == 'da':
         file = open("stop_words.txt","r+")
         stop_words = file.read().split()
-        # Generate word cloud
-        wordcloud = WordCloud(width = 3000, height = 2000, random_state=1, 
-                            background_color='white', colormap="rocket", 
-                            collocations=False, stopwords = stop_words).generate(texts)
+    if language == 'en':
+        stop_words = set(STOPWORDS)
+    # Generate word cloud
+    wordcloud = WordCloud(width = 3000, height = 2000, random_state=1, 
+                        background_color='white', colormap="rocket", 
+                        collocations=False, stopwords = stop_words).generate(texts)
 
-        vis_word_cloud(data_prefix, root_path, wordcloud)
+    vis_word_cloud(data_prefix, root_path, wordcloud)
     
     # BIGRAM GRAPH
     d = create_bigrams(df)
