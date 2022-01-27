@@ -8,6 +8,7 @@ import getopt, sys, os
 import re
 import glob
 from configparser import ConfigParser
+from ast import literal_eval
 
 ########################################################################################################################
 ##     DEFINE FUNCTIONS
@@ -88,16 +89,21 @@ def get_tweet_frequencies(df):
 def preprocess_stats(data_prefix: str, 
                      root_path:str,
                      from_date:str, 
-                     to_date:str):
+                     to_date:str, 
+                     language: str):
     """Main preprocessing, cleans data, masks it if necessary
     data_prefix: indicates which dataset it is
     root_path: location for the input and output
-    from_date: date from which 
+    from_date: date from which
+    language: specifies whether it is from the danish or english tweets (da and en respectively) 
     """
     # input_data = root_path + data_prefix + "_data.csv"
     input_data = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_data.csv')
 
-    df = pd.read_csv(input_data,lineterminator='\n')[1:].rename(columns={"0":"created_at", "1":"id", "2":"text", "3":"search_keyword"})
+    if language == 'en':
+        df = pd.read_csv(input_data,lineterminator='\n', index_col=0).dropna()
+    else:
+        df = pd.read_csv(input_data,lineterminator='\n')[1:].rename(columns={"0":"created_at", "1":"id", "2":"text", "3":"search_keyword"})
     print(df.head())
 
     df = df[df["created_at"] != '0'].reset_index(drop=True)
@@ -108,20 +114,22 @@ def preprocess_stats(data_prefix: str,
     print(df.created_at.unique())
     df["date"] = pd.to_datetime(df["created_at"], utc=True).dt.strftime('%Y-%m-%d')
     
-    if (len(from_date) > 1) and (len(to_date) > 1):
+    if language == 'da' and (len(from_date) > 1) and (len(to_date) > 1):
         # Choose specified date range
         mask = (df['date'] > from_date) & (df['date'] <= to_date)
         df = df.loc[mask]
     elif from_date:
         mask = (df['date'] > from_date)
         df = df.loc[mask]
+
     
     print("\nStart removing quote tweets")
     df2 = remove_quote_tweets(df)
     print("\nGet tweet frequencies")
     df3 = get_tweet_frequencies(df2)
     
-    print(df3.groupby(["search_keyword"]).count().reset_index())
+    if language == 'da':
+        print(df3.groupby(["search_keyword"]).count().reset_index())
     
     # out_filename = root_path + data_prefix + "_data_pre.csv"
     out_filename = os.path.join(root_path, f'{data_prefix}_files',f'{data_prefix}_data_pre.csv')
@@ -155,8 +163,9 @@ def main(argv):
             from_date = config[f'{key}']["from_date"]
             to_date = config[f'{key}']["to_date"]
             test_limit = config[f'{key}']["test_limit"]
-            small = config[f'{key}']["small"]
-            print(f'Running preprocessing with key: {key}, keywords: {keywords} from {from_date} and small = {small}')
+            small = literal_eval(config[f'{key}']["small"])
+            language = config[f'{key}']["lan"]
+            print(f'Running preprocessing with key: {key}, keywords: {keywords} from {from_date}. Small = {small}. Language = {language}.')
     # try:
     #     opts, args = getopt.getopt(argv,"hk:f:t:l:s:")
     # except getopt.GetoptError:
@@ -181,7 +190,13 @@ def main(argv):
     #         small = arg
     #         print('Small: ', small)
     # print('Input keywords are ', keywords)
-    return keywords, from_date, to_date
+
+    # convert make sure None is not a str
+    from_date = None if from_date == 'None' else from_date
+    to_date = None if to_date == 'None' else to_date
+    test_limit = None if test_limit == 'None' else test_limit
+    
+    return keywords, from_date, to_date, language
 
 ########################################################################################################################
 ##     INPUT
@@ -189,7 +204,7 @@ def main(argv):
     
 if __name__ == "__main__":
     
-    keywords, from_date, to_date = main(sys.argv[1:])
+    keywords, from_date, to_date, language = main(sys.argv[1:])
     ori_keyword_list = keywords.split(",")
     
     keyword_list = []
@@ -208,4 +223,4 @@ if __name__ == "__main__":
     
     ############################
     print("---PREPROCESS STATS---")
-    preprocess_stats(data_prefix, root_path, from_date, to_date)
+    preprocess_stats(data_prefix, root_path, from_date, to_date, language)

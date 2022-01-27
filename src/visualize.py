@@ -393,7 +393,7 @@ def vis_bigram_graph(data_prefix, root_path, d, graph_layout_number):
 def visualize(data_prefix, root_path, ysmooth_nr1, ysmooth_nr2, ysmooth_c1, ysmooth_c2):
     # filename = f'{root_path}{data_prefix}_files/{data_prefix}_smoothed.csv'
     filename = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_smoothed.csv')
-    df = pd.read_csv(filename)
+    df = pd.read_csv(filename,lineterminator='\n')
     
     # Create a column which is just date
     df["date"] = pd.to_datetime(df["created_at"], utc=True).dt.strftime('%Y-%m-%d')
@@ -414,7 +414,8 @@ def visualize(data_prefix, root_path, ysmooth_nr1, ysmooth_nr2, ysmooth_c1, ysmo
     # Sentiment Analysis
     # Rolling average
     #freq_df['compound_7day_ave'] = df.compound.rolling(7).mean().shift(-3)
-    vis_sentiment_compound(data_prefix, root_path, df, ysmooth_c1, ysmooth_c2)
+    if language == 'da':
+        vis_sentiment_compound(data_prefix, root_path, df, ysmooth_c1, ysmooth_c2)
     
     ## WORD FREQUENCY
     print("Get word frequency")
@@ -423,14 +424,15 @@ def visualize(data_prefix, root_path, ysmooth_nr1, ysmooth_nr2, ysmooth_c1, ysmo
     
     # WORD CLOUD
     #%matplotlib inline
-    file = open("stop_words.txt","r+")
-    stop_words = file.read().split()
-    # Generate word cloud
-    wordcloud = WordCloud(width = 3000, height = 2000, random_state=1, 
-                          background_color='white', colormap="rocket", 
-                          collocations=False, stopwords = stop_words).generate(texts)
+    if language == 'da':
+        file = open("stop_words.txt","r+")
+        stop_words = file.read().split()
+        # Generate word cloud
+        wordcloud = WordCloud(width = 3000, height = 2000, random_state=1, 
+                            background_color='white', colormap="rocket", 
+                            collocations=False, stopwords = stop_words).generate(texts)
 
-    vis_word_cloud(data_prefix, root_path, wordcloud)
+        vis_word_cloud(data_prefix, root_path, wordcloud)
     
     # BIGRAM GRAPH
     d = create_bigrams(df)
@@ -475,8 +477,15 @@ def main(argv):
             to_date = config[f'{key}']["to_date"]
             test_limit = config[f'{key}']["test_limit"]
             small = config[f'{key}']["small"]
-            print(f'Running visualizations with key: {key}, keywords: {keywords} from {from_date} and small = {small}')
-    return keywords, from_date, to_date, small
+            language = config[f'{key}']["lan"]
+            print(f'Running visualizations with key: {key}, keywords: {keywords} from {from_date}. Small = {small}. Language = {language}.')
+    
+    # convert make sure None is not a str
+    from_date = None if from_date == 'None' else from_date
+    to_date = None if to_date == 'None' else to_date
+    test_limit = None if test_limit == 'None' else test_limit
+
+    return keywords, from_date, to_date, small, language
 
 ########################################################################################################################
 ##     INPUT
@@ -484,7 +493,7 @@ def main(argv):
 
 if __name__ == "__main__":
     
-    keywords, from_date, to_date, small = main(sys.argv[1:])
+    keywords, from_date, to_date, small, language = main(sys.argv[1:])
     ori_keyword_list = keywords.split(",")
     
     keyword_list = []
