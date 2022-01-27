@@ -4,6 +4,7 @@
 *.log
 src/logs/*
 src/nohup.out
+src/__pycache__/*
 .ipynb_checkpoints/
 explore_data.ipynb
 makrel_mette/*
@@ -14,3 +15,4 @@ mette_f_bert.ipynb
 keyword_config.ini
 keyword_dict.ndjson
 notebooks/streamlit.ipynb
+src/en/*

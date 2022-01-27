@@ -69,8 +69,9 @@ def main(argv):
             to_date = config[f'{key}']["to_date"]
             test_limit = config[f'{key}']["test_limit"]
             small = config[f'{key}']["small"]
-            print(f'Running VADER semantics with key: {key}, keywords: {keywords} from {from_date} and small = {small}')
-    return keywords
+            language = config[f'{key}']["lan"]
+            print(f'Running VADER semantics with key: {key}, keywords: {keywords} from {from_date}. Small = {small}. Language = {language}.')
+    return keywords, language
 
 ########################################################################################################################
 ##     INPUT
@@ -78,7 +79,7 @@ def main(argv):
     
 if __name__ == "__main__":
     
-    keywords = main(sys.argv[1:])
+    keywords, language = main(sys.argv[1:])
     ori_keyword_list = keywords.split(",")
     
     keyword_list = []
@@ -97,4 +98,10 @@ if __name__ == "__main__":
     
     ############################
     print("---------SENTIMENT ANALYSIS----------")
-    semantic_scores(data_prefix, root_path)
+    if 'omicron-denmark' == data_prefix:
+        filename = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_data_bert.csv')
+        sent_df = pd.read_csv(filename,lineterminator='\n')
+        filename_out = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_vis.csv')
+        sent_df.to_csv(filename_out, index = False)
+    else:
+        semantic_scores(data_prefix, root_path)
