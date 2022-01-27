@@ -205,9 +205,9 @@ def smooth_and_entropy(data_prefix: str,
         ic(df.head())
         ic(df.columns)
     
-    # df = center_compound(df)
-    # df = get_entropy(df)
-    # df = center_entropy(df)
+    df = center_compound(df)
+    df = get_entropy(df)
+    df = center_entropy(df)
 
     if if_bert:
         X = np.array(df["polarity_score"]).reshape(-1, 1)
@@ -302,7 +302,7 @@ if __name__ == "__main__":
     print("--------SMOOTHING PIPELINE START--------")
     if language == 'en':
         smooth_and_entropy(data_prefix, root_path, from_date, 
-                       if_compound = False, if_nroftweets = True, 
+                       if_compound = True, if_nroftweets = True, 
                        if_bert=False, if_entropy=False, if_small = if_small)
     else:
         smooth_and_entropy(data_prefix, root_path, from_date, 
