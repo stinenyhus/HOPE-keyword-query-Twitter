@@ -186,13 +186,14 @@ def smooth_and_entropy(data_prefix: str,
     print("Read in data, prepare")
     # vis_file = root_path + data_prefix + "_vis.csv"
     vis_file = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_vis.csv')
-    df = pd.read_csv(vis_file)
+    df = pd.read_csv(vis_file,lineterminator='\n')
     df = df.sort_values("created_at")
     print(len(df))
     df["date"] = pd.to_datetime(df["created_at"], utc=True).dt.strftime('%Y-%m-%d')
     df["date"] = pd.to_datetime(df["date"])
     
-    df = apply_date_mask(df, from_date)
+    if from_date:
+        df = apply_date_mask(df, from_date)
     if len(df) < 1:
         print("ERROR: Apply a from_date in the bash command with e.g. '-f 2021-01-01'.")
     
@@ -258,8 +259,15 @@ def main(argv):
             to_date = config[f'{key}']["to_date"]
             test_limit = config[f'{key}']["test_limit"]
             small = config[f'{key}']["small"]
-            print(f'Running smoothing pipeline with key: {key}, keywords: {keywords} from {from_date} and small = {small}')
-    return keywords, test_limit, from_date, small
+            language = config[f'{key}']["lan"]
+            print(f'Running smoothing pipeline with key: {key}, keywords: {keywords} from {from_date}. Small = {small}. Language = {language}.')
+    
+    # convert make sure None is not a str
+    from_date = None if from_date == 'None' else from_date
+    to_date = None if to_date == 'None' else to_date
+    test_limit = None if test_limit == 'None' else test_limit
+
+    return keywords, test_limit, from_date, small, language
 
 ########################################################################################################################
 ##     INPUT
@@ -267,7 +275,7 @@ def main(argv):
 
 if __name__ == "__main__":
     
-    keywords, test_limit, from_date, small = main(sys.argv[1:])
+    keywords, test_limit, from_date, small, language = main(sys.argv[1:])
     ic(main(sys.argv[1:]))
     ori_keyword_list = keywords.split(",")
     
@@ -292,6 +300,11 @@ if __name__ == "__main__":
 
     ###############################
     print("--------SMOOTHING PIPELINE START--------")
-    smooth_and_entropy(data_prefix, root_path, from_date, 
+    if language == 'en':
+        smooth_and_entropy(data_prefix, root_path, from_date, 
+                       if_compound = True, if_nroftweets = True, 
+                       if_bert=False, if_entropy=False, if_small = if_small)
+    else:
+        smooth_and_entropy(data_prefix, root_path, from_date, 
                        if_compound = True, if_nroftweets = True, 
                        if_bert=True, if_entropy=False, if_small = if_small)

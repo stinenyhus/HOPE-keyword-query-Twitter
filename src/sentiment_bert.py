@@ -127,9 +127,9 @@ if __name__ == "__main__":
 
     data_prefix = keyword_list[0]
     out = os.path.join("..", f'{data_prefix}_files', f'{data_prefix}_data_bert')
-    # if 'mettef' == data_prefix:
-    #     filename = os.path.join("..", f"{data_prefix}_files", f"{data_prefix}_data_pre.csv")
-    #     df = pd.read_csv(filename)
-    #     df.to_csv(f'{out}.csv')
-    # else:    
-    bert_scores(data_prefix, out)
+    if 'omicron-denmark' == data_prefix:
+        filename = os.path.join("..", f"{data_prefix}_files", f"{data_prefix}_data_pre.csv")
+        df = pd.read_csv(filename,lineterminator='\n')
+        df.to_csv(f'{out}.csv')
+    else:    
+        bert_scores(data_prefix, out)
