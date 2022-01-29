@@ -17,21 +17,23 @@ from configparser import ConfigParser
 ########################################################################################################################
 
 def semantic_scores(data_prefix: str, 
-                    root_path:str):
+                    root_path:str,
+                    language: str):
     """
     data_prefix: indicates which dataset it is
     root_path: path to where the data is saved to
+    language: the language of the text
     """
     # filename = root_path + data_prefix + "_data_pre.csv"
     filename = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_data_bert.csv')
-    sent_df = pd.read_csv(filename)
+    sent_df = pd.read_csv(filename, lineterminator='\n')
     print(sent_df.head()) 
     
     sent_df["mentioneless_text"] = sent_df["mentioneless_text"].astype(str)
 
     print("Conducting SA with VADER")
     print(sent_df.head())
-    tts = ttx.TextToSentiment(lang='da', method="dictionary")
+    tts = ttx.TextToSentiment(lang=language, method="dictionary")
     out = tts.texts_to_sentiment(list(sent_df['mentioneless_text'].values))
     sent_df = pd.concat([sent_df, out], axis=1).dropna()
     print("Joining SA results")
@@ -69,8 +71,9 @@ def main(argv):
             to_date = config[f'{key}']["to_date"]
             test_limit = config[f'{key}']["test_limit"]
             small = config[f'{key}']["small"]
-            print(f'Running VADER semantics with key: {key}, keywords: {keywords} from {from_date} and small = {small}')
-    return keywords
+            language = config[f'{key}']["lan"]
+            print(f'Running VADER semantics with key: {key}, keywords: {keywords} from {from_date}. Small = {small}. Language = {language}.')
+    return keywords, language
 
 ########################################################################################################################
 ##     INPUT
@@ -78,7 +81,7 @@ def main(argv):
     
 if __name__ == "__main__":
     
-    keywords = main(sys.argv[1:])
+    keywords, language = main(sys.argv[1:])
     ori_keyword_list = keywords.split(",")
     
     keyword_list = []
@@ -97,4 +100,10 @@ if __name__ == "__main__":
     
     ############################
     print("---------SENTIMENT ANALYSIS----------")
-    semantic_scores(data_prefix, root_path)
+    # if 'omicron-denmark' == data_prefix:
+    #     filename = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_data_bert.csv')
+    #     sent_df = pd.read_csv(filename,lineterminator='\n')
+    #     filename_out = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_vis.csv')
+    #     sent_df.to_csv(filename_out, index = False)
+    # else:
+    semantic_scores(data_prefix, root_path, language)
