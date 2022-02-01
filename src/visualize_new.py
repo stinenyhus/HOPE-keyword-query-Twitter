@@ -113,8 +113,6 @@ def lemmatize_tweet(tweet):
     spacy_tokens = sp(tokenized)
     lemmatized_tweet = [t.lemma_ for t in spacy_tokens]
     
-    lemmatized_tweet = [x for x in lemmatized_tweet if x not in my_stop_words]
-    
     hmm = ['   ','  ',' ','','♂','','❤','','🤷','”', '“', "'", '"', '’']
     lemmatized_tweet = [x for x in lemmatized_tweet if x not in hmm]
     lemmatized_tweet = [name for name in lemmatized_tweet if name.strip()]
@@ -129,8 +127,9 @@ def prep_word_freq(freq_df, stop_words):
     
     word_freq = freq_df.tokens_string.str.split(expand=True).stack().value_counts()
     word_freq = word_freq.to_frame().reset_index().rename(columns={"index": "Word", 0: "Frequency"})
+
     for stop_word in stop_words:
-        word_freq = word_freq[word_freq['Word'] != stop_word]
+        word_freq = word_freq[word_freq["Word"].str.contains(stop_word) == False]
     
     return texts, word_freq
 
@@ -549,19 +548,17 @@ if __name__ == "__main__":
         stop_words = set(STOPWORDS)
     tokenizer = sp.tokenizer
     stop_words = list(stop_words)
-    my_stop_words = stop_words + keyword_list
     # Tokenize and Lemmatize stop words
-    # joint_stops = " ".join(stop_words)
-    # tokenized = tokenizer(joint_stops).doc.text
-    # stops = sp(tokenized)
-    # my_stop_words = [t.lemma_ for t in stops]
-    # my_stop_words = list(set(my_stop_words))
+    joint_stops = " ".join(stop_words)
+    tokenized = tokenizer(joint_stops).doc.text
+    stops = sp(tokenized)
+    lemma_stop_words = [t.lemma_ for t in stops]
+    lemma_stop_words = list(set(lemma_stop_words))
 
-    # sentiment_models = ['vader', 'bert-tone']
-    sentiment_models = ['vader']
+    sentiment_models = ['vader', 'bert-tone']
     
     ###############################
     print("---VISUALIZE---")
     print("START loading data: ", data_prefix)
  
-    visualize(data_prefix, root_path, sentiment_models, ysmooth_1, ysmooth_2, stop_words, keyword_list)
+    visualize(data_prefix, root_path, sentiment_models, ysmooth_1, ysmooth_2, lemma_stop_words, keyword_list)
