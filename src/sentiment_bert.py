@@ -9,11 +9,10 @@ from csv import writer
 import getopt, sys
 import re
 import ssl
+import functools
 from dacy.sentiment import add_bertemotion_emo, add_bertemotion_laden, add_berttone_polarity
 import pysentimiento as ps
 from configparser import ConfigParser
-
-
 
 # Trust the DaNLP site 
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -83,20 +82,20 @@ def bert_scores(data_prefix: str, out_path:str):
                 pol_label_prob]
         append_list_as_row(f'{out_path}.csv', row)
 
-def english_sentiment(column:pd.Series):
+def english_sentiment(column:pd.Series, model):
     """This function extracts Pysentimentio sentiment.
-    Object called analyzer, a pysentimentio analyzer object, must be created prior to use
     Returns a tuple with the predicted label and the associated probability
 
     Args:
         column (pd.Series): column in dataframe to apply sentiment to
+        model (pysentimiento.analyzer.SentimentAnalyzer): Pysentimention analyzer object
 
     Returns:
         tuple: (polarity label, polarity prob) or ("nan", "nan") for "nan" input
     """    
     if pd.isna(column):
         return (float("nan"), float("nan"))
-    output = analyzer.predict(column)
+    output = model.predict(column)
     return (output.output, output.probas[output.output])
 
 
@@ -107,7 +106,8 @@ def bert_scores_en(data_prefix: str, out_path:str):
 
     # Apply using analyzer
     analyzer = ps.SentimentAnalyzer(lang="en")
-    sentiment = list(map(english_sentiment, df["mentioneless_text"]))
+    partial_func = functools.partial(english_sentiment, model=analyzer)
+    sentiment = list(map(partial_func, df["mentioneless_text"]))
     print("Calculated sentiment")
     sents = list(zip(*sentiment))
 
