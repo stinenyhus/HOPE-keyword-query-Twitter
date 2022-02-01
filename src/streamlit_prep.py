@@ -31,7 +31,7 @@ def load_data(data_prefix: str) -> pd.DataFrame:
     map_prefix = f'{data_prefix}_files'
 
     filename = '../' + map_prefix + '/' + data_prefix + '_final.csv'
-    data = pd.read_csv(filename)
+    data = pd.read_csv(filename, lineterminator="\n")
       
     if not os.path.exists('../fig'):
         os.makedirs('../figs')
