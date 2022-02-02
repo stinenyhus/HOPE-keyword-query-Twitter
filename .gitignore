@@ -15,3 +15,4 @@ mette_f_bert.ipynb
 keyword_dict.ndjson
 notebooks/streamlit.ipynb
 english_bert.ipynb
+*.pyc
