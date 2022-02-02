@@ -294,19 +294,10 @@ if __name__ == "__main__":
     data_prefix = keyword_list[0]
     # root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
     root_path = os.path.join("..") 
-    
-    if small == "True":
-        if_small = True
-    elif small == "False":
-        if_small = False
 
     ###############################
     print("--------SMOOTHING PIPELINE START--------")
-    # if language == 'en':
-    #     smooth_and_entropy(data_prefix, root_path, from_date, 
-    #                    if_compound = True, if_nroftweets = True, 
-    #                    if_bert=False, if_entropy=False, if_small = if_small)
-    # else:
+
     smooth_and_entropy(data_prefix, root_path, from_date, 
                        if_compound = True, if_nroftweets = True, 
-                       if_bert=True, if_entropy=False, if_small = if_small)
+                       if_bert=True, if_entropy=False, if_small = small)
