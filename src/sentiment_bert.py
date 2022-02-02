@@ -13,6 +13,7 @@ import functools
 from dacy.sentiment import add_bertemotion_emo, add_bertemotion_laden, add_berttone_polarity
 import pysentimiento as ps
 from configparser import ConfigParser
+from ast import literal_eval
 
 # Trust the DaNLP site 
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -150,6 +151,13 @@ def main(argv):
             small = config[f'{key}']["small"]
             language = config[f'{key}']["lan"]
             print(f'Running BERT models with key: {key}, keywords: {keywords} from {from_date} and small = {small}')
+    
+    # convert make sure None is not a str
+    from_date = None if from_date == 'None' else from_date
+    to_date = None if to_date == 'None' else to_date
+    test_limit = None if test_limit == 'None' else test_limit
+    small = literal_eval(small)
+
     return keywords, language
 
 

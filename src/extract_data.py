@@ -12,7 +12,11 @@ import os
 import os.path
 from os import path
 from icecream import ic
+
 from configparser import ConfigParser
+from ast import literal_eval
+
+from en.extract_en_data import extract_en_data
 
 ########################################################################################################################
 ##     DEFINE FUNCTIONS
@@ -68,6 +72,72 @@ def ignore_dates_less_than(output_name):
         if element in mega_path:
             mega_path.remove(element)
             
+    return mega_path
+
+
+def define_megapath():
+    if test_limit:
+        pathname = '/data/001_twitter_hope/preprocessed/da/td_' + str(test_limit) + '*.ndjson'
+        ic(pathname)
+        mega_path = glob.glob(pathname)
+        ic(mega_path)
+    elif (len(from_date) > 1) & (len(to_date) > 1):
+        ic(from_date, to_date)
+        ic(type(from_date), type(to_date))
+        pathname = '/data/001_twitter_hope/preprocessed/da/*.ndjson'
+        
+        min_date = remove_date_dash(from_date)
+        max_date = remove_date_dash(to_date)
+        mega_path = glob.glob(pathname)
+        
+        print(min_date, max_date)
+        
+        files_to_ignore = []
+        for file in mega_path:
+            date = re.findall(r'\/data\/001_twitter_hope\/preprocessed\/da\/td_(\d*)', file)[0]
+            if (date < min_date) or (date > max_date):
+                files_to_ignore.append(file)
+
+        ic(files_to_ignore)
+        
+        for element in files_to_ignore:
+            if element in mega_path:
+                mega_path.remove(element)
+                
+    elif len(from_date) > 1:
+        pathname = '/data/001_twitter_hope/preprocessed/da/*.ndjson'
+        min_date = remove_date_dash(from_date)
+        mega_path = glob.glob(pathname)
+        
+        files_to_ignore = []
+        for file in mega_path:
+            date = re.findall(r'\/data\/001_twitter_hope\/preprocessed\/da\/td_(\d*)', file)[0]
+            if date < min_date:
+                files_to_ignore.append(file)
+
+        for element in files_to_ignore:
+            if element in mega_path:
+                mega_path.remove(element)
+                
+    elif len(to_date) > 1:
+        pathname = '/data/001_twitter_hope/preprocessed/da/*.ndjson'
+        max_date = remove_date_dash(to_date)
+        mega_path = glob.glob(pathname)
+        
+        files_to_ignore = []
+        for file in mega_path:
+            date = re.findall(r'\/data\/001_twitter_hope\/preprocessed\/da\/td_(\d*)', file)[0]
+            if date > max_date:
+                files_to_ignore.append(file)
+
+        for element in files_to_ignore:
+            if element in mega_path:
+                mega_path.remove(element)
+    else:
+        # Runs through all the files here, date does not matter
+        pathname = '/data/001_twitter_hope/preprocessed/da/*.ndjson'
+        mega_path = glob.glob(pathname)
+    
     return mega_path
 
 ########################################################################################################################
@@ -163,21 +233,17 @@ def main(argv):
             to_date = config[f'{key}']["to_date"]
             test_limit = config[f'{key}']["test_limit"]
             small = config[f'{key}']["small"]
-            print(f'Running pipeline with key: {key}, keywords: {keywords} from {from_date} and small = {small}')
-        # elif opt in "-f":
-        #     from_date = arg
-        #     print('Date specifics: from ', from_date)
-        # elif opt in "-t":
-        #     to_date = arg
-        #     print(' to ', to_date)
-        # elif opt in "-l":
-        #     test_limit = arg
-        #     print('TESTING: ', test_limit)
-        # elif opt in "-s":
-        #     small = arg
-        #     print('Small: ', small)
+            language = config[f'{key}']["lan"]
+            print(f'Running pipeline with key: {key}, keywords: {keywords} from {from_date}. Small = {small}. Language = {language}.')
+    
+    # convert make sure None is not a str
+    from_date = None if from_date == 'None' else from_date
+    to_date = None if to_date == 'None' else to_date
+    test_limit = None if test_limit == 'None' else test_limit
+    small = literal_eval(small)
+
     print('Input keywords are ', keywords)
-    return keywords, test_limit, from_date, to_date
+    return keywords, test_limit, from_date, to_date, language
 
 ########################################################################################################################
 ##     INPUT
@@ -185,7 +251,7 @@ def main(argv):
 
 if __name__ == "__main__":
     
-    keywords, test_limit, from_date, to_date = main(sys.argv[1:])
+    keywords, test_limit, from_date, to_date, language = main(sys.argv[1:])
     ic(main(sys.argv[1:]))
     ori_keyword_list = keywords.split(",")
     
@@ -201,67 +267,8 @@ if __name__ == "__main__":
 
     data_prefix = keyword_list[0]
 
-    if test_limit:
-        pathname = '/data/001_twitter_hope/preprocessed/da/td_' + str(test_limit) + '*.ndjson'
-        ic(pathname)
-        mega_path = glob.glob(pathname)
-        ic(mega_path)
-    elif (len(from_date) > 1) & (len(to_date) > 1):
-        ic(from_date, to_date)
-        ic(type(from_date), type(to_date))
-        pathname = '/data/001_twitter_hope/preprocessed/da/*.ndjson'
-        
-        min_date = remove_date_dash(from_date)
-        max_date = remove_date_dash(to_date)
-        mega_path = glob.glob(pathname)
-        
-        print(min_date, max_date)
-        
-        files_to_ignore = []
-        for file in mega_path:
-            date = re.findall(r'\/data\/001_twitter_hope\/preprocessed\/da\/td_(\d*)', file)[0]
-            if (date < min_date) or (date > max_date):
-                files_to_ignore.append(file)
-
-        ic(files_to_ignore)
-        
-        for element in files_to_ignore:
-            if element in mega_path:
-                mega_path.remove(element)
-                
-    elif len(from_date) > 1:
-        pathname = '/data/001_twitter_hope/preprocessed/da/*.ndjson'
-        min_date = remove_date_dash(from_date)
-        mega_path = glob.glob(pathname)
-        
-        files_to_ignore = []
-        for file in mega_path:
-            date = re.findall(r'\/data\/001_twitter_hope\/preprocessed\/da\/td_(\d*)', file)[0]
-            if date < min_date:
-                files_to_ignore.append(file)
-
-        for element in files_to_ignore:
-            if element in mega_path:
-                mega_path.remove(element)
-                
-    elif len(to_date) > 1:
-        pathname = '/data/001_twitter_hope/preprocessed/da/*.ndjson'
-        max_date = remove_date_dash(to_date)
-        mega_path = glob.glob(pathname)
-        
-        files_to_ignore = []
-        for file in mega_path:
-            date = re.findall(r'\/data\/001_twitter_hope\/preprocessed\/da\/td_(\d*)', file)[0]
-            if date > max_date:
-                files_to_ignore.append(file)
-
-        for element in files_to_ignore:
-            if element in mega_path:
-                mega_path.remove(element)
-    else:
-        # Runs through all the files here, date does not matter
-        pathname = '/data/001_twitter_hope/preprocessed/da/*.ndjson'
-        mega_path = glob.glob(pathname)
+    if language == 'da':
+        mega_path = define_megapath()
     
     root_path = os.path.join("..") 
 
@@ -280,4 +287,7 @@ if __name__ == "__main__":
     print('done creating folders')
     
     print("--------EXTRACT DATA--------")
-    extract_data(keyword_list, data_prefix, mega_path, root_path, from_date, to_date) 
+    if language == 'da':
+        extract_data(keyword_list, data_prefix, mega_path, root_path, from_date, to_date)
+    if language == 'en':
+        extract_en_data(data_prefix, root_path)

@@ -12,6 +12,7 @@ import math
 from collections import Counter
 from sklearn.preprocessing import StandardScaler
 from configparser import ConfigParser
+from ast import literal_eval
 
 import re
 import string
@@ -266,6 +267,7 @@ def main(argv):
     from_date = None if from_date == 'None' else from_date
     to_date = None if to_date == 'None' else to_date
     test_limit = None if test_limit == 'None' else test_limit
+    small = literal_eval(small)
 
     return keywords, test_limit, from_date, small, language
 

@@ -14,11 +14,14 @@ import re
 import ast
 from nltk.util import bigrams 
 import spacy
+from wordcloud import STOPWORDS
 import os
 import sys
 import getopt
 import pickle
+from typing import List
 from configparser import ConfigParser
+from ast import literal_eval
 
 
 #####################
@@ -100,18 +103,22 @@ def get_hashtag_frequencies(df):
 
 
 # Calculate word frequency
-def word_freq(data: pd.DataFrame):
+def word_freq(data: pd.DataFrame, stop_words: List[str]):
     w_freq = data.tokens_string.str.split(expand = True).stack().value_counts()
     w_freq = w_freq.to_frame().reset_index().rename(columns={'index': 'word', 0: 'Frequency'})
+    for stop_word in stop_words:
+        w_freq = w_freq[w_freq["word"].str.contains(stop_word) == False]
     df_freq= w_freq.nlargest(30, columns=['Frequency'])
-
     return df_freq
 
 
 
 # Bigrams
-def get_bigrams(data: pd.DataFrame) -> pd.DataFrame:
-    terms_bigram = [list(bigrams(ast.literal_eval(tweet))) for tweet in data['tokens_list']]
+def get_bigrams(data: pd.DataFrame, stop_words: List[str]) -> pd.DataFrame:
+    terms_bigram = []
+    for tweet in data['tokens_list']:
+        tokens = [token for token in ast.literal_eval(tweet) if token not in stop_words]
+        terms_bigram.append(list(bigrams(tokens)))
     # Flatten list of bigrams in clean tweets
     bigrms = list(itertools.chain(*terms_bigram))
     
@@ -123,19 +130,11 @@ def get_bigrams(data: pd.DataFrame) -> pd.DataFrame:
 
 # wordcloud preparation
 def wordcloud_prep(data: pd.DataFrame) -> pd.DataFrame:
-    sp = spacy.load('da_core_news_lg')
-    file = open("stop_words.txt","r+")
-    stop_words = file.read().split()
-    # Lemmatize stop words
-    stops = " ".join(stop_words)
-    stops = sp(stops)
-    my_stop_words = [t.lemma_ for t in stops]
-
     texts = data["tokens_string"]
     texts = texts[texts.notnull()] #Sometimes necessary
     texts = ", ".join(texts)
 
-    return texts, my_stop_words
+    return texts
 
 
 # Save pkl files in a folder
@@ -200,13 +199,21 @@ def main(argv):
             to_date = config[f'{key}']["to_date"]
             test_limit = config[f'{key}']["test_limit"]
             small = config[f'{key}']["small"]
-            print(f'Running streamlit preparation with key: {key}, keywords: {keywords} from {from_date} and small = {small}')
-    return keywords, from_date, to_date, small
+            language = config[f'{key}']["lan"]
+            print(f'Running streamlit preparation with key: {key}, keywords: {keywords} from {from_date}. Small = {small}. Language = {language}')
+    
+    # convert make sure None is not a str
+    from_date = None if from_date == 'None' else from_date
+    to_date = None if to_date == 'None' else to_date
+    test_limit = None if test_limit == 'None' else test_limit
+    small = literal_eval(small)
+
+    return keywords, from_date, to_date, small, language
 
 
 if __name__ == "__main__":
 
-    keywords, from_date, to_date, small = main(sys.argv[1:])
+    keywords, from_date, to_date, small, language = main(sys.argv[1:])
     ori_keyword_list = keywords.split(",")
     
     keyword_list = []
@@ -223,11 +230,30 @@ if __name__ == "__main__":
 
     print('--STREAMLIT PREPARATION--')
     print('Data prefix = ', data_prefix, '\n---------------\n')
+    ## load stopwords ##
+    if language == 'da':
+        sp = spacy.load('da_core_news_lg')
+        file = open("stop_words.txt","r+")
+        stop_words = file.read().split()
+    if language == 'en':
+        sp = spacy.load('en_core_web_lg')
+        stop_words = set(STOPWORDS)
+    
+    tokenizer = sp.tokenizer
+    stop_words = list(stop_words)
+    # Tokenize and Lemmatize stop words
+    joint_stops = " ".join(stop_words)
+    tokenized = tokenizer(joint_stops).doc.text
+    stops = sp(tokenized)
+    lemma_stop_words = [t.lemma_ for t in stops]
+    lemma_stop_words = list(set(lemma_stop_words))
+
     ## Load file ##
     df = load_data(data_prefix=data_prefix)
 
     ## make .pkl files ##
-    out_path = os.path.join('..', f'{data_prefix}_files', f'{data_prefix}_streamlit')
+    # out_path = os.path.join('..', f'{data_prefix}_files', f'{data_prefix}_streamlit')
+    out_path = os.path.join('/home', 'commando', 'stine-sara', 'data', 'hope', 'streamlit', f'{data_prefix}_streamlit')
 
     df = prepare_date_col(df)
     df = get_tweet_frequencies(df)
@@ -239,12 +265,12 @@ if __name__ == "__main__":
     hashtags = df1.nlargest(30, columns=['nr_of_hashtags'])
     save_file(hashtags, out_path, f'{data_prefix}_hash.pkl')
 
-    w_freqs = word_freq(df)
+    w_freqs = word_freq(df, lemma_stop_words+keyword_list)
     save_file(w_freqs, out_path, f'{data_prefix}_w_freq.pkl')
 
-    bigrams = get_bigrams(df) 
+    bigrams = get_bigrams(df, lemma_stop_words) 
     save_file(bigrams, out_path, f'{data_prefix}_bigrams.pkl')
 
-    texts, stop_words = wordcloud_prep(df)
-    wordcloud_dict = {'texts': texts, 'my_stop_words': stop_words}
+    texts = wordcloud_prep(df)
+    wordcloud_dict = {'texts': texts, 'my_stop_words': lemma_stop_words+keyword_list}
     save_dict(wordcloud_dict, out_path, f'{data_prefix}_wordcloud.pkl')

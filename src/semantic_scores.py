@@ -11,6 +11,7 @@ import getopt, sys, os
 import re
 import glob
 from configparser import ConfigParser
+from ast import literal_eval
 
 ########################################################################################################################
 ##     MAIN FUNCTION
@@ -73,6 +74,13 @@ def main(argv):
             small = config[f'{key}']["small"]
             language = config[f'{key}']["lan"]
             print(f'Running VADER semantics with key: {key}, keywords: {keywords} from {from_date}. Small = {small}. Language = {language}.')
+    
+    # convert make sure None is not a str
+    from_date = None if from_date == 'None' else from_date
+    to_date = None if to_date == 'None' else to_date
+    test_limit = None if test_limit == 'None' else test_limit
+    small = literal_eval(small)
+
     return keywords, language
 
 ########################################################################################################################
@@ -100,10 +108,4 @@ if __name__ == "__main__":
     
     ############################
     print("---------SENTIMENT ANALYSIS----------")
-    # if 'omicron-denmark' == data_prefix:
-    #     filename = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_data_bert.csv')
-    #     sent_df = pd.read_csv(filename,lineterminator='\n')
-    #     filename_out = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_vis.csv')
-    #     sent_df.to_csv(filename_out, index = False)
-    # else:
     semantic_scores(data_prefix, root_path, language)
