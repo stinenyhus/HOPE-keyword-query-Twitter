@@ -177,6 +177,8 @@ if __name__ == "__main__":
 
     data_prefix = keyword_list[0]
     out = os.path.join("..", f'{data_prefix}_files', f'{data_prefix}_data_bert')
+
+    print("---------SENTIMENT BERT----------")
     if language == "en":
         bert_scores_en(data_prefix, out)
     else:    
