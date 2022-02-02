@@ -525,13 +525,8 @@ if __name__ == "__main__":
     # root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
     root_path = os.path.join("..") 
     
-    if small == "True":
-        if_small = True
-    elif small == "False":
-        if_small = False
-    
     ## conditional for ysmooth depending on small
-    if if_small:
+    if small:
         ysmooth_1 = 200
         ysmooth_2 = 500
     else:

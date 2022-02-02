@@ -252,8 +252,8 @@ if __name__ == "__main__":
     df = load_data(data_prefix=data_prefix)
 
     ## make .pkl files ##
-    # out_path = os.path.join('..', f'{data_prefix}_files', f'{data_prefix}_streamlit')
-    out_path = os.path.join('/home', 'commando', 'stine-sara', 'data', 'hope', 'streamlit', f'{data_prefix}_streamlit')
+    out_path = os.path.join('..', f'{data_prefix}_files', f'{data_prefix}_streamlit')
+    # out_path = os.path.join('/home', 'commando', 'stine-sara', 'data', 'hope', 'streamlit', f'{data_prefix}_streamlit')
 
     df = prepare_date_col(df)
     df = get_tweet_frequencies(df)
