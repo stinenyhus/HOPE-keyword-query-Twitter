@@ -12,7 +12,7 @@ notebooks/old_notebooks/*
 git_setup.sh
 notebooks/split_jul.ipynb
 mette_f_bert.ipynb
-keyword_config.ini
 keyword_dict.ndjson
 notebooks/streamlit.ipynb
-src/en/*
+english_bert.ipynb
+*.pyc

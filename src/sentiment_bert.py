@@ -9,10 +9,11 @@ from csv import writer
 import getopt, sys
 import re
 import ssl
+import functools
 from dacy.sentiment import add_bertemotion_emo, add_bertemotion_laden, add_berttone_polarity
+import pysentimiento as ps
 from configparser import ConfigParser
-
-
+from ast import literal_eval
 
 # Trust the DaNLP site 
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -82,6 +83,47 @@ def bert_scores(data_prefix: str, out_path:str):
                 pol_label_prob]
         append_list_as_row(f'{out_path}.csv', row)
 
+def english_sentiment(column:pd.Series, model):
+    """This function extracts Pysentimentio sentiment.
+    Returns a tuple with the predicted label and the associated probability
+
+    Args:
+        column (pd.Series): column in dataframe to apply sentiment to
+        model (pysentimiento.analyzer.SentimentAnalyzer): Pysentimention analyzer object
+
+    Returns:
+        tuple: (polarity label, polarity prob) or ("nan", "nan") for "nan" input
+    """    
+    if pd.isna(column):
+        return (float("nan"), float("nan"))
+    output = model.predict(column)
+    return (output.output, output.probas[output.output])
+
+
+def bert_scores_en(data_prefix: str, out_path:str):
+    # Prepare file
+    filename=os.path.join("..", f"{data_prefix}_files", f"{data_prefix}_data_pre.csv")
+    df = pd.read_csv(filename,lineterminator='\n')
+
+    # Apply using analyzer
+    analyzer = ps.SentimentAnalyzer(lang="en")
+    partial_func = functools.partial(english_sentiment, model=analyzer)
+    sentiment = list(map(partial_func, df["mentioneless_text"]))
+    print("Calculated sentiment")
+    sents = list(zip(*sentiment))
+
+    # Dictionary for getting polarity score
+    pol_dict = {"POS": 1,
+                "NEU": 0,
+                "NEG": -1}
+
+    # Add to df
+    df["polarity"] = sents[0]
+    df["polarity_score"] = [pol_dict[label] if not pd.isna(label) else label for label in df["polarity"]]
+    df["polarity_prob"] = sents[1]
+
+    df.to_csv(f'{out_path}.csv')
+
 def main(argv):
     keywords = ''
     from_date = '' 
@@ -107,12 +149,20 @@ def main(argv):
             to_date = config[f'{key}']["to_date"]
             test_limit = config[f'{key}']["test_limit"]
             small = config[f'{key}']["small"]
+            language = config[f'{key}']["lan"]
             print(f'Running BERT models with key: {key}, keywords: {keywords} from {from_date} and small = {small}')
-    return keywords
+    
+    # convert make sure None is not a str
+    from_date = None if from_date == 'None' else from_date
+    to_date = None if to_date == 'None' else to_date
+    test_limit = None if test_limit == 'None' else test_limit
+    small = literal_eval(small)
+
+    return keywords, language
 
 
 if __name__ == "__main__":
-    keywords = main(sys.argv[1:])
+    keywords, language = main(sys.argv[1:])
     ori_keyword_list = keywords.split(",")
     
     keyword_list = []
@@ -127,9 +177,9 @@ if __name__ == "__main__":
 
     data_prefix = keyword_list[0]
     out = os.path.join("..", f'{data_prefix}_files', f'{data_prefix}_data_bert')
-    if 'omicron-denmark' == data_prefix:
-        filename = os.path.join("..", f"{data_prefix}_files", f"{data_prefix}_data_pre.csv")
-        df = pd.read_csv(filename,lineterminator='\n')
-        df.to_csv(f'{out}.csv')
+
+    print("---------SENTIMENT BERT----------")
+    if language == "en":
+        bert_scores_en(data_prefix, out)
     else:    
         bert_scores(data_prefix, out)

@@ -12,6 +12,7 @@ import math
 from collections import Counter
 from sklearn.preprocessing import StandardScaler
 from configparser import ConfigParser
+from ast import literal_eval
 
 import re
 import string
@@ -266,6 +267,7 @@ def main(argv):
     from_date = None if from_date == 'None' else from_date
     to_date = None if to_date == 'None' else to_date
     test_limit = None if test_limit == 'None' else test_limit
+    small = literal_eval(small)
 
     return keywords, test_limit, from_date, small, language
 
@@ -292,19 +294,10 @@ if __name__ == "__main__":
     data_prefix = keyword_list[0]
     # root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
     root_path = os.path.join("..") 
-    
-    if small == "True":
-        if_small = True
-    elif small == "False":
-        if_small = False
 
     ###############################
     print("--------SMOOTHING PIPELINE START--------")
-    if language == 'en':
-        smooth_and_entropy(data_prefix, root_path, from_date, 
+
+    smooth_and_entropy(data_prefix, root_path, from_date, 
                        if_compound = True, if_nroftweets = True, 
-                       if_bert=False, if_entropy=False, if_small = if_small)
-    else:
-        smooth_and_entropy(data_prefix, root_path, from_date, 
-                       if_compound = True, if_nroftweets = True, 
-                       if_bert=True, if_entropy=False, if_small = if_small)
+                       if_bert=True, if_entropy=False, if_small = small)
