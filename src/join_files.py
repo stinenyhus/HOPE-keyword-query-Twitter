@@ -9,6 +9,7 @@ import os, shutil
 import os.path
 from os import path
 from configparser import ConfigParser
+from ast import literal_eval
 
 ########################################################################################################################
 ##     DEFINE FUNCTIONS
@@ -100,32 +101,18 @@ def main(argv):
             to_date = config[f'{key}']["to_date"]
             test_limit = config[f'{key}']["test_limit"]
             small = config[f'{key}']["small"]
-            print(f'Joining files using key: {key}, keywords: {keywords} from {from_date} and small = {small}')
-    # try:
-    #     opts, args = getopt.getopt(argv,"hk:f:t:l:s:")
-    # except getopt.GetoptError:
-    #     print('test.py -k <keyword1,keyword2> -f <2020-01-20> -t <2020-12-31> -l <20200101>')
-    #     sys.exit(2)
-    # for opt, arg in opts:
-    #     if opt == '-h':
-    #         print('test.py -keywords <keyword1,keyword2> -from_date <2020-01-20> -to_date <2020-12-31> -test_limit <20200101>')
-    #         sys.exit()
-    #     elif opt in "-k":
-    #         keywords = arg
-    #     elif opt in "-f":
-    #         from_date = arg
-    #         print('Date specifics: from ', from_date)
-    #     elif opt in "-t":
-    #         to_date = arg
-    #         print(' to ', to_date)
-    #     elif opt in "-l":
-    #         test_limit = arg
-    #         print('TESTING: ', test_limit)
-    #     elif opt in "-s":
-    #         small = arg
-    #         print('Small: ', small)
+            language = config[f'{key}']["lan"]
+            print(f'Joining files using key: {key}, keywords: {keywords} from {from_date}. Small = {small}. Language = {language}.')
+    
+
+    # convert make sure None is not a str
+    from_date = None if from_date == 'None' else from_date
+    to_date = None if to_date == 'None' else to_date
+    test_limit = None if test_limit == 'None' else test_limit
+    small = literal_eval(small)
+
     print('Input keywords are ', keywords)
-    return keywords
+    return keywords, language
 
 ########################################################################################################################
 ##     INPUT
@@ -133,7 +120,11 @@ def main(argv):
 
 if __name__ == "__main__":
     
-    keywords = main(sys.argv[1:])
+    keywords, language = main(sys.argv[1:])
+    if language == 'en': # script only relevant for danish tweets
+        print('-------------\n Skipping join_files.py \n-------------')
+        quit() 
+
     ori_keyword_list = keywords.split(",")
     
     keyword_list = []

@@ -34,7 +34,7 @@ nohup bash pipeline.sh -k omicron-denmark &> logs/omicron-denmark_${DATE}.log &
 # nohup bash pipeline.sh -k omicron &> logs/omicron_${DATE}.log &
 
 # # Lockdown
-# nohup bash pipeline.sh -k lockdown &> logs/lockdown_$D{DATE}ATE.log &
+# nohup bash pipeline.sh -k lockdown &> logs/lockdown_${DATE}.log &
 
 # # Pressemøde
 # nohup bash pipeline.sh -k pressemøde &> logs/pressemøde_${DATE}.log &
