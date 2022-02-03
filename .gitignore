@@ -16,3 +16,4 @@ keyword_dict.ndjson
 notebooks/streamlit.ipynb
 src/en/*
 english_bert.ipynb
+GPT.ipynb
