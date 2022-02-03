@@ -36,6 +36,7 @@ tokenizers>=0.10.1
 utils>=1.0.1
 wordcloud>=1.8.1
 https://huggingface.co/spacy/da_core_news_lg/resolve/main/da_core_news_lg-any-py3-none-any.whl
+https://huggingface.co/spacy/en_core_web_lg/resolve/main/en_core_web_lg-any-py3-none-any.whl
 cupy-cuda102 >= 8.6.0
 spacy[cuda101] 
 thinc[torch] >= 8.0.7
