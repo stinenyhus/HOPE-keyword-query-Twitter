@@ -31,6 +31,7 @@ def semantic_scores(data_prefix: str,
     print(sent_df.head()) 
     
     sent_df["mentioneless_text"] = sent_df["mentioneless_text"].astype(str)
+    sent_df = sent_df.drop_duplicates()
 
     print("Conducting SA with VADER")
     print(sent_df.head())

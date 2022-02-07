@@ -9,6 +9,7 @@ import re
 import glob
 from configparser import ConfigParser
 from ast import literal_eval
+from datetime import date
 
 ########################################################################################################################
 ##     DEFINE FUNCTIONS
@@ -166,34 +167,11 @@ def main(argv):
             small = literal_eval(config[f'{key}']["small"])
             language = config[f'{key}']["lan"]
             print(f'Running preprocessing with key: {key}, keywords: {keywords} from {from_date}. Small = {small}. Language = {language}.')
-    # try:
-    #     opts, args = getopt.getopt(argv,"hk:f:t:l:s:")
-    # except getopt.GetoptError:
-    #     print('test.py -k <keyword1,keyword2> -f <2020-01-20> -t <2020-12-31> -l <20200101>')
-    #     sys.exit(2)
-    # for opt, arg in opts:
-    #     if opt == '-h':
-    #         print('test.py -keywords <keyword1,keyword2> -from_date <2020-01-20> -to_date <2020-12-31> -test_limit <20200101>')
-    #         sys.exit()
-    #     elif opt in "-k":
-    #         keywords = arg
-    #     elif opt in "-f":
-    #         from_date = arg
-    #         print('Date specifics: from ', from_date)
-    #     elif opt in "-t":
-    #         to_date = arg
-    #         print(' to ', to_date)
-    #     elif opt in "-l":
-    #         test_limit = arg
-    #         print('TESTING: ', test_limit)
-    #     elif opt in "-s":
-    #         small = arg
-    #         print('Small: ', small)
-    # print('Input keywords are ', keywords)
 
     # convert make sure None is not a str
     from_date = None if from_date == 'None' else from_date
     to_date = None if to_date == 'None' else to_date
+    to_date = date.today().strftime("%Y-%m-%d")
     test_limit = None if test_limit == 'None' else test_limit
     
     return keywords, from_date, to_date, language

@@ -12,7 +12,7 @@ import os
 import os.path
 from os import path
 from icecream import ic
-
+from datetime import date
 from configparser import ConfigParser
 from ast import literal_eval
 
@@ -76,6 +76,8 @@ def ignore_dates_less_than(output_name):
 
 
 def define_megapath():
+    print(from_date)
+    print(type(from_date))
     if test_limit:
         pathname = '/data/001_twitter_hope/preprocessed/da/td_' + str(test_limit) + '*.ndjson'
         ic(pathname)
@@ -149,7 +151,7 @@ def extract_data(keyword_list:list,
                  mega_path:str,
                  root_path: str, 
                  from_date:str, 
-                 to_date:str):
+                 to_date:str): 
     """Main function that runs and logs extraction of data
     """
     print("START data extraction for keywords: ", keyword_list)
@@ -239,6 +241,7 @@ def main(argv):
     # convert make sure None is not a str
     from_date = None if from_date == 'None' else from_date
     to_date = None if to_date == 'None' else to_date
+    to_date = date.today().strftime("%Y-%m-%d")
     test_limit = None if test_limit == 'None' else test_limit
     small = literal_eval(small)
 

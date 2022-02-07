@@ -35,7 +35,7 @@ def bert_scores(data_prefix: str, out_path:str):
     print('Prepare models')
     nlp = spacy.blank("da")
     # Doc.set_extension("vader_da", getter=da_vader_getter, force = True) #da_vader_getter is from dacy
-    nlp = add_bertemotion_laden(nlp)   
+    nlp = add_bertemotion_laden(nlp)    
     nlp = add_bertemotion_emo(nlp) 
     nlp = add_berttone_polarity(nlp)#, force_extension=True) 
 
@@ -104,6 +104,7 @@ def bert_scores_en(data_prefix: str, out_path:str):
     # Prepare file
     filename=os.path.join("..", f"{data_prefix}_files", f"{data_prefix}_data_pre.csv")
     df = pd.read_csv(filename,lineterminator='\n')
+    df = df.drop_duplicates(on = "date")
 
     # Apply using analyzer
     analyzer = ps.SentimentAnalyzer(lang="en")
