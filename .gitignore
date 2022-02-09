@@ -14,5 +14,6 @@ notebooks/split_jul.ipynb
 mette_f_bert.ipynb
 keyword_dict.ndjson
 notebooks/streamlit.ipynb
+src/en/*
 english_bert.ipynb
-*.pyc
+GPT.ipynb
