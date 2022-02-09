@@ -6,7 +6,7 @@ python join_files.py $*
 
 python preprocess_stats.py $* 
 
-source /home/stine/.virtualenvs/hope/bin/activate
+source /home/saram/.virtualenvs/hope/bin/activate
 python sentiment_bert.py $* 
 
 source /home/commando/covid_19_rbkh/Preprocessing/text_to_x/bin/activate
