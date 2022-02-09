@@ -173,7 +173,7 @@ def set_late_plot_settings(fig, ax1, if_dates):
     if if_dates:
         # Define the date  format
         ax1.xaxis_date()
-        date_form = mdates.DateFormatter("%d-%b")
+        date_form = mdates.DateFormatter("%d-%b-%Y")
         ax1.xaxis.set_major_formatter(date_form)
 
     ax1.set(ylim=(0, None))
@@ -272,8 +272,12 @@ def vis_sentiment_compound(data_prefix, root_path, df, model, smoothing_value):
                             linewidth = 5, data = df)
         plt.legend(labels=['Centered sentiment score', 'Smoothed'])
 
+
+    ax1.xaxis_date()
+    date_form = mdates.DateFormatter("%d-%b-%Y")
+    ax1.xaxis.set_major_formatter(date_form)
     ax1.set_ylim(ymin = -1, ymax = 1)
-    ax1.set(xlabel='date', ylabel = "")
+    ax1.set(xlabel='Date', ylabel = "")
     ax1.xaxis.get_label().set_fontsize(30)
     ax1.yaxis.get_label().set_fontsize(30)
 
