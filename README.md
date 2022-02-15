@@ -16,11 +16,20 @@ The pipeline can be run on two different datasets:
 2. Running pipeline on subset of tweets from English Twitter. The tweets have been obtained using already defined keywords: ``denmark AND (covid | corona | omicron)``. 
 
 ### Run the pipeline
-Clone the repository and run the following commands
+Clone the repository and run the pipeline in one of two ways:
+
+1. For query of a single keyword search, use the following approach and run the pipeline directly
 ```
 cd src
 bash pipeline.sh -k key &> logs/key_[today's_date].log
 ```
+
+2. For query of multiple keyword searches, use the file ``run_queries.sh``; change the date in line 1 to today's date in the form DDMM (e.g. ``DATE=1502``), uncomment the relevant lines and run it in the terminal, possibly in a screen, as
+```
+cd src
+bash run_queries.sh
+```
+Log-files are automatically saved in the same folder as when using approach 1. 
 
 To run the pipeline an entry for the key must exist in the config file ``src/keyword_config.ini``. To add a new entry the following must be provided
 

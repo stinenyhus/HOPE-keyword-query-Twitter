@@ -1,6 +1,6 @@
 DATE=1502
 
-# Omicron English tweets
+# # Omicron English tweets
 # bash pipeline.sh -k denmark &> logs/denmark_${DATE}.log &
 # echo "Finished running pipeline on denmark (i.e., English tweets)"
 
@@ -8,11 +8,11 @@ DATE=1502
 # bash pipeline.sh -k vaccin &> logs/vaccin_${DATE}.log 
 # echo "Finished running pipeline on vaccin"
 
-# # Coronapas
+# Coronapas
 bash pipeline.sh -k coronapas &> logs/coronapas_${DATE}.log
 echo "Finished running pipeline on coronapas"
 
-# # Mundbind
+# Mundbind
 bash pipeline.sh -k mundbind &> logs/mundbind_${DATE}.log 
 echo "Finished running pipeline on mundbind"
 
