@@ -22,7 +22,7 @@ def get_df(filenames: list):
     df = pd.read_csv(filenames[0], header = None, sep=",")
 
     for file in filenames[1:]:
-        print(file)
+        print(file) 
         df_0 = pd.read_csv(file, header = None, sep=",", lineterminator='\n')
         df = df.append(df_0)
 
