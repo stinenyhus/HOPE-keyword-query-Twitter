@@ -256,12 +256,7 @@ if __name__ == "__main__":
     # out_path = os.path.join('/home', 'commando', 'stine-sara', 'data', 'hope', 'streamlit', f'{data_prefix}_streamlit')
 
     df = prepare_date_col(df)
-    df = get_tweet_frequencies(df)
-    smooth_val = 500
-    if not small:
-        smooth_val = 5000
-    df = df[["date", "nr_of_tweets", f"s{smooth_val}_nr_of_tweets"]] #  f"s{smooth_val}_compound", ,"s{smooth_val}_polarity_score_z"
-    print(f'df now has columns {df.columns} and duplicates have been dropped. Saving.')
+    df = get_tweet_frequencies(df) 
     save_file(df, out_path, f'{data_prefix}.pkl')
 
     hashtags = hashtag_per_row(df)

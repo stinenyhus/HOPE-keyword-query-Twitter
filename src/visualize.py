@@ -464,6 +464,7 @@ def visualize(data_prefix, root_path, sentiment_models, ysmooth_1, ysmooth_2, st
     print(df.columns)
 
     output_name = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_final.csv')
+    print(f'STATS: dates go from {min(df["date"])} to {max(df["date"])} and total number of tweets is {len(df.index)}')
     df.to_csv(output_name,index = False)
 
 ########################################################################################################################
