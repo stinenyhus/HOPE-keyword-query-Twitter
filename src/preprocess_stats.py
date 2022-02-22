@@ -146,7 +146,7 @@ def main(argv):
     to_date = ''
     test_limit = '' # this is so that it's possible to test the system on just one day/month of data
     small = ''
-    try:
+    try: 
         opts, args = getopt.getopt(argv,"hk:")
         config = ConfigParser()
         config.read("keyword_config.ini")
