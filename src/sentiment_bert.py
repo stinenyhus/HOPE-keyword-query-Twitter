@@ -104,7 +104,6 @@ def bert_scores_en(data_prefix: str, out_path:str):
     # Prepare file
     filename=os.path.join("..", f"{data_prefix}_files", f"{data_prefix}_data_pre.csv")
     df = pd.read_csv(filename,lineterminator='\n')
-    df = df.drop_duplicates(on = "date")
 
     # Apply using analyzer
     analyzer = ps.SentimentAnalyzer(lang="en")
