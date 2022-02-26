@@ -323,7 +323,7 @@ def vis_word_freq(data_prefix, root_path, word_freq, nr_of_words):
     fig.savefig(plot_name)
     print("Save figure done\n------------------\n")
     
-def vis_word_cloud(data_prefix, root_path, wordcloud):
+def vis_word_cloud(data_prefix, root_path, wordcloud, second_path=None):
     plt.figure(figsize=(40, 30))
     # Display image
     plt.imshow(wordcloud) 
@@ -331,6 +331,8 @@ def vis_word_cloud(data_prefix, root_path, wordcloud):
     plt.axis("off");
     plot_name = os.path.join(root_path, "fig", f'{data_prefix}', f'{data_prefix}_word_cloud.png')
     plt.savefig(plot_name)
+    if second_path:
+        plt.savefig(second_path)
     
 # Aggregate a frequency DF
 def get_tweet_frequencies(df):
@@ -451,7 +453,10 @@ def visualize(data_prefix, root_path, sentiment_models, ysmooth_1, ysmooth_2, st
                         background_color='white', colormap="rocket", 
                         collocations=False, stopwords = my_stop_words).generate(texts)
 
-    vis_word_cloud(data_prefix, root_path, wordcloud)
+    path_to_streamlit = os.path.join('..', f'{data_prefix}_files', f'{data_prefix}_streamlit')
+    if not os.path.exists(path_to_streamlit):
+        os.mkdir(path_to_streamlit)
+    vis_word_cloud(data_prefix, root_path, wordcloud, os.path.join(path_to_streamlit, f'{data_prefix}_wordcloud.png'))
     
     # BIGRAM GRAPH
     d = create_bigrams(df, stop_words)
