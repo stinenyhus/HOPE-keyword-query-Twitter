@@ -22,13 +22,27 @@ import pickle
 from typing import List
 from configparser import ConfigParser
 from ast import literal_eval
+from fileinput import filename
+import pandas as pd 
+import numpy as np
+import seaborn as sns
+import os
+import sys
 
 
 #####################
 # Define functions #
 ####################
 
-def load_data(data_prefix: str) -> pd.DataFrame:
+def load_data(data_prefix: str):
+    """Loads the df called _final into pd.DataFrame
+
+    Args:
+        data_prefix (str): the keyword prefix
+
+    Returns:
+        pd.DataFrame: the _final.csv file as pd.DataFrame
+    """    
 
     data_prefix = data_prefix
     map_prefix = f'{data_prefix}_files'
@@ -45,7 +59,9 @@ def load_data(data_prefix: str) -> pd.DataFrame:
 
 
 def get_tweet_frequencies(df):
-    # Add freq of tweets by themselves in the dataset
+    """
+    Add freq of tweets by themselves in the dataset
+    """
     # pd.DataFrame creates a new datafrme where "number of tweets" is now the column and it is filled with the associated number
     df_ = df.drop("nr_of_tweets", axis=1)
     tweet_freq = pd.DataFrame({'nr_of_tweets' : df_.groupby(['date']).size()}).reset_index()
@@ -56,7 +72,7 @@ def get_tweet_frequencies(df):
 
 
 
-def prepare_date_col(data: pd.DataFrame) -> pd.DataFrame:
+def prepare_date_col(data: pd.DataFrame):
     data = data.sort_values('created_at')
     data['date'] = pd.to_datetime(data['created_at'], utc=True).dt.strftime('%Y-%m-%d')
     data['date'] = pd.to_datetime(data['date'])
@@ -114,7 +130,7 @@ def word_freq(data: pd.DataFrame, stop_words: List[str]):
 
 
 # Bigrams
-def get_bigrams(data: pd.DataFrame, stop_words: List[str]) -> pd.DataFrame:
+def get_bigrams(data: pd.DataFrame, stop_words: List[str]):
     terms_bigram = []
     for tweet in data['tokens_list']:
         tokens = [token for token in ast.literal_eval(tweet) if token not in stop_words]
@@ -168,6 +184,134 @@ def save_dict(data: dict,
     print(f'Saving {file_path} \n---------------\n')
     with open(file_path, 'wb') as handle:
         pickle.dump(wordcloud_dict, handle)
+
+###################
+# Kates functions #
+###################
+
+def set_lab_freq(small: str):
+    '''
+    Function for getting the correct column with smoothed values
+    '''
+    if small:
+        return 's500_nr_of_tweets'
+        
+    else:
+        return 's5000_nr_of_tweets'
+
+def tweet_freq(keyword: str):
+    """Calculates the number of tweets per day.
+    Returns pd.DataFrame with columns indicating date, nr of tweets that day and mean
+
+    Args:
+        keyword (str): the keyword indicating query term
+
+    Returns:
+        pd.DataFrame: the dataframe with the tweet frequencies
+    """    
+    # Get name of column with smoothed frequencies
+    name = set_lab_freq(keyword)
+
+    # Calculate mean of day
+    mean = df.groupby('date')[name].mean()
+    mean = mean.reset_index()
+    mean = mean.rename(columns = {name:'mean'})
+
+    # Keep only necessary
+    merged  = pd.merge(mean, df, on = 'date')
+    merged = merged.filter(['date', 'nr_of_tweets', 'mean'], axis=1)
+
+    return merged
+
+def compute_ci(data: pd.DataFrame,
+               array: str,
+               upper_bound: str,
+               lower_bound: str):
+    '''
+    Computes 95 percent confidence interval (CI)
+    
+    
+    Args:
+        data (str): The dataframe with the dataset
+        array (str): The dataframe column with arrays of values
+        upper_bound (str): The name of the output dataframe column with CI upper bound values
+        lower_bound (str): The name of the output dataframe column with CI lower bound values
+    
+    
+    Returns:
+          pd.DataFrame: The input dataframe with two new columns (upper and lower bound values)
+    '''
+    # Prepare dataframe
+    data[upper_bound] = 0.0
+    data[lower_bound] = 0.0
+
+    # Loop over rows in dataframe and add to 
+    for i in range(len(data)):
+        CI = sns.utils.ci(sns.algorithms.bootstrap(data[array][i])) 
+        
+        data.loc[i, upper_bound] = CI[0]
+        data.loc[i, lower_bound] = CI[1]
+        # data[upper_bound][i] = CI[0]
+        # data[lower_bound][i] = CI[1]
+        
+    return data
+
+def mean_ci_sentiment(df: pd.DataFrame):
+    """Calculates mean and CI for the two smoothed sentiment columns (Vader and BERT)
+
+    Args:
+        df (pd.DataFrame): the dataframe with the smoothed sentiment columns
+
+    Returns:
+        pd.DataFrame: dataframe with the mean and CI columns added
+    """
+    # Filter only relevant columns    
+    df0 = df.filter(['date', 'centered_compound', 'polarity_score_z'], axis=1)
+
+    # Group compound sentiment scores by date. Make arrays from the grouped values
+    df_compound = df0.groupby(['date'])['centered_compound'].apply(list).apply(lambda x: np.asarray(x))
+    df_compound = df_compound.reset_index()
+    df_compound = df_compound.rename(columns = {'centered_compound':'compound_array'})
+
+    # Calculate mean for arrays of compound scores
+    mean_compound = df0.groupby("date")['centered_compound'].mean()
+    mean_compound  = mean_compound.reset_index()
+    mean_compound = mean_compound.rename(columns = {'centered_compound':'compound_mean'})
+
+    # Calculate upper and lower bounds for 95% confidence interval for compound score
+    df_compound = compute_ci(df_compound, 
+                            array = 'compound_array',
+                            upper_bound = 'compound_upper',
+                            lower_bound = 'compound_lower')
+
+    # Merge mean and arrays for compund scores into a single df
+    merged_compound = pd.merge(df_compound, mean_compound, on = 'date')
+
+    # Group z sentiment scores by date. Make arrays from the grouped values
+    df_z = df0.groupby(['date'])['polarity_score_z'].apply(list).apply(lambda x: np.asarray(x))
+    df_z = df_z.reset_index()
+    df_z = df_z.rename(columns = {'polarity_score_z':'z_array'})
+
+    # Calculate mean for arrays of compound scores
+    mean_z = df0.groupby("date")['polarity_score_z'].mean()
+    mean_z  = mean_z.reset_index()
+    mean_z = mean_z.rename(columns = {'polarity_score_z':'z_mean'})
+
+    # Calculate upper and lower bounds for 95% confidence interval for z score
+    df_z = compute_ci(df_z, 
+                    array = 'z_array',
+                    upper_bound = 'z_upper',
+                    lower_bound = 'z_lower')
+
+    # Merge mean and arrays for z scores into a single df
+    merged_z= pd.merge(df_z, mean_z, on = 'date')
+
+    # Create df with all values for z and compound scores 
+    df_merged = pd.merge(merged_compound, merged_z, on = 'date')
+    merged_final = pd.merge(df, df_merged, on = 'date')
+    merged_final = merged_final.drop_duplicates(subset=['date'])
+
+    return merged_final
 
 
 ########################################################################################################################
@@ -255,22 +399,35 @@ if __name__ == "__main__":
     out_path = os.path.join('..', f'{data_prefix}_files', f'{data_prefix}_streamlit')
     # out_path = os.path.join('/home', 'commando', 'stine-sara', 'data', 'hope', 'streamlit', f'{data_prefix}_streamlit')
 
+    ## Prepare df ##
     df = prepare_date_col(df)
     df = get_tweet_frequencies(df) 
-    save_file(df, out_path, f'{data_prefix}.pkl')
+    # save_file(df, out_path, f'{data_prefix}.pkl') # Not used??
 
+    # Hashtags
     hashtags = hashtag_per_row(df)
     freq_hashtags = get_hashtag_frequencies(hashtags)
     df1 = freq_hashtags.sort_values(by=['nr_of_hashtags'], ascending=False)
     hashtags = df1.nlargest(30, columns=['nr_of_hashtags'])
     save_file(hashtags, out_path, f'{data_prefix}_hash.pkl')
 
+    # Word frequency
     w_freqs = word_freq(df, lemma_stop_words+keyword_list)
     save_file(w_freqs, out_path, f'{data_prefix}_w_freq.pkl')
 
+    # Bigrams
     bigrams = get_bigrams(df, lemma_stop_words) 
     save_file(bigrams, out_path, f'{data_prefix}_bigrams.pkl')
 
-    texts = wordcloud_prep(df)
-    wordcloud_dict = {'texts': texts, 'my_stop_words': lemma_stop_words+keyword_list}
-    save_dict(wordcloud_dict, out_path, f'{data_prefix}_wordcloud.pkl')
+    # Wordcloud
+    # texts = wordcloud_prep(df)
+    # wordcloud_dict = {'texts': texts, 'my_stop_words': lemma_stop_words+keyword_list}
+    # save_dict(wordcloud_dict, out_path, f'{data_prefix}_wordcloud.pkl') # the actual .png is used, not the .pkl file
+
+    # Tweet frequency
+    tweet_frequency = tweet_freq(data_prefix)
+    save_file(tweet_frequency, out_path, f'{data_prefix}_tweet_freq.pkl')
+
+    # Mean and CI sentiment
+    sentiment_mean_ci = mean_ci_sentiment(df)
+    save_file(sentiment_mean_ci, out_path, f'{data_prefix}_sentiment.pkl')

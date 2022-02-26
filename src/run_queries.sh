@@ -1,4 +1,4 @@
-DATE=1802
+DATE=2202
 
 # Vaccine
 bash pipeline.sh -k vaccin &> logs/vaccin_${DATE}.log 
