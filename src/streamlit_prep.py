@@ -119,13 +119,21 @@ def get_hashtag_frequencies(df):
 
 
 # Calculate word frequency
-def word_freq(data: pd.DataFrame, stop_words: List[str]):
+def word_freq(data: pd.DataFrame, stop_words: List[str], n_words=None):
+    for word in stop_words:
+        print(word)
     w_freq = data.tokens_string.str.split(expand = True).stack().value_counts()
     w_freq = w_freq.to_frame().reset_index().rename(columns={'index': 'word', 0: 'Frequency'})
-    for stop_word in stop_words:
-        # w_freq = w_freq[w_freq["word"].str.contains(stop_word) == False]
-        w_freq = w_freq[-w_freq["word"].isin(stop_words)]
-    df_freq= w_freq.nlargest(len(w_freq.index), columns=['Frequency'])
+    # for stop_word in stop_words:
+    #     w_freq = w_freq[w_freq["word"].str.contains(stop_word) == False]
+    w_freq = w_freq[-w_freq["word"].isin(stop_words)]
+    # print("After stopword removal")
+    # for w in w_freq["word"]:
+    #     print(w)
+    if not n_words:
+        df_freq= w_freq.nlargest(len(w_freq.index), columns=['Frequency'])
+    else: 
+        df_freq= w_freq.nlargest(n_words, columns=['Frequency'])
     return df_freq
 
 # Bigrams
@@ -450,8 +458,11 @@ if __name__ == "__main__":
     save_file(hashtags, out_path, f'{data_prefix}_hash.pkl')
 
     # Word frequency
-    w_freqs = word_freq(df, lemma_stop_words+keyword_list)
+    w_freqs = word_freq(df, lemma_stop_words+keyword_list, 30)
     save_file(w_freqs, out_path, f'{data_prefix}_w_freq.pkl')
+
+    bi_w_freqs = word_freq(df, lemma_stop_words)
+    save_file(bi_w_freqs, out_path, f'{data_prefix}_bigram_token_freq.pkl')
 
     # Bigrams
     bigrams_by_week = get_bigrams(df, lemma_stop_words, by_week=True) 

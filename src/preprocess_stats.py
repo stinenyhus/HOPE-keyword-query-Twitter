@@ -128,7 +128,7 @@ def preprocess_stats(data_prefix: str,
     df = df[df["created_at"] != 'created_at'].reset_index(drop=True)
     df = df.sort_values(by='created_at').reset_index(drop=True)
     print(len(df))
-    
+     
     print(df.created_at.unique())
     df["date"] = pd.to_datetime(df["created_at"], utc=True).dt.strftime('%Y-%m-%d')
     

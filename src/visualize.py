@@ -130,7 +130,7 @@ def prep_word_freq(freq_df, stop_words):
     word_freq = word_freq.to_frame().reset_index().rename(columns={"index": "Word", 0: "Frequency"})
 
     for stop_word in stop_words:
-        # word_freq = word_freq[word_freq["Word"].str.contains(stop_word) == False]
+        # word_freq = word_freq[word_freq["Word"].str.contains(stop_word) == False] 
         w_freq = w_freq[-w_freq["word"].isin(stop_words)]
     
     return texts, word_freq
