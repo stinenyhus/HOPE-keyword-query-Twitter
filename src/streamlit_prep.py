@@ -123,7 +123,8 @@ def word_freq(data: pd.DataFrame, stop_words: List[str]):
     w_freq = data.tokens_string.str.split(expand = True).stack().value_counts()
     w_freq = w_freq.to_frame().reset_index().rename(columns={'index': 'word', 0: 'Frequency'})
     for stop_word in stop_words:
-        w_freq = w_freq[w_freq["word"].str.contains(stop_word) == False]
+        # w_freq = w_freq[w_freq["word"].str.contains(stop_word) == False]
+        w_freq = w_freq[-w_freq["word"].isin(stop_words)]
     df_freq= w_freq.nlargest(len(w_freq.index), columns=['Frequency'])
     return df_freq
 
