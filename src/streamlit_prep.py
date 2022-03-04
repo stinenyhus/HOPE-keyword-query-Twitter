@@ -124,23 +124,49 @@ def word_freq(data: pd.DataFrame, stop_words: List[str]):
     w_freq = w_freq.to_frame().reset_index().rename(columns={'index': 'word', 0: 'Frequency'})
     for stop_word in stop_words:
         w_freq = w_freq[w_freq["word"].str.contains(stop_word) == False]
-    df_freq= w_freq.nlargest(30, columns=['Frequency'])
+    df_freq= w_freq.nlargest(len(w_freq.index), columns=['Frequency'])
     return df_freq
 
-
-
 # Bigrams
-def get_bigrams(data: pd.DataFrame, stop_words: List[str]):
-    terms_bigram = []
-    for tweet in data['tokens_list']:
-        tokens = [token for token in ast.literal_eval(tweet) if token not in stop_words]
-        terms_bigram.append(list(bigrams(tokens)))
-    # Flatten list of bigrams in clean tweets
-    bigrms = list(itertools.chain(*terms_bigram))
+def get_bigrams(data: pd.DataFrame, stop_words: List[str], by_week=False):
+    bigram_df = pd.DataFrame()
+    if by_week:
+        data["Week_Y"] = data["date"].dt.strftime('%V-%Y')
+        weeks = list(data["Week_Y"].unique())
+        for week in weeks:
+            df = data[data["Week_Y"] == week]
+            terms_bigram = []
+            for tweet in df['tokens_list']:
+                tokens = [token for token in ast.literal_eval(tweet) if token not in stop_words]
+                terms_bigram.append(list(bigrams(tokens)))
+            # Flatten list of bigrams in clean tweets
+            bigrms = list(itertools.chain(*terms_bigram))
+            bigram_counts = collections.Counter(bigrms)
+            temp_df = pd.DataFrame(bigram_counts.most_common(30), columns=['bigram', 'count'])
+            temp_df["week_y"] = week
+            bigram_df = pd.concat([bigram_df, temp_df])
     
-    # Create counter of words in clean bigrams
-    bigram_counts = collections.Counter(bigrms)
-    bigram_df = pd.DataFrame(bigram_counts.most_common(30), columns=['bigram', 'count'])
+    else:
+        terms_bigram = []
+        for tweet in data['tokens_list']:
+            tokens = [token for token in ast.literal_eval(tweet) if token not in stop_words]
+            terms_bigram.append(list(bigrams(tokens)))
+        # Flatten list of bigrams in clean tweets
+        bigrms = list(itertools.chain(*terms_bigram))
+        # Create counter of words in clean bigrams
+        bigram_counts = collections.Counter(bigrms)
+        bigram_df = pd.DataFrame(bigram_counts.most_common(30), columns=['bigram', 'count'])
+
+        terms_bigram = []
+        for tweet in data['tokens_list']:
+            tokens = [token for token in ast.literal_eval(tweet) if token not in stop_words]
+            terms_bigram.append(list(bigrams(tokens)))
+        # Flatten list of bigrams in clean tweets
+        bigrms = list(itertools.chain(*terms_bigram))
+        
+        # Create counter of words in clean bigrams
+        bigram_counts = collections.Counter(bigrms)
+        bigram_df = pd.DataFrame(bigram_counts.most_common(30), columns=['bigram', 'count'])
 
     return bigram_df
 
@@ -184,10 +210,6 @@ def save_dict(data: dict,
     print(f'Saving {file_path} \n---------------\n')
     with open(file_path, 'wb') as handle:
         pickle.dump(wordcloud_dict, handle)
-
-###################
-# Kates functions #
-###################
 
 def set_lab_freq(small: str):
     '''
@@ -314,6 +336,21 @@ def mean_ci_sentiment(df: pd.DataFrame):
     return merged_final
 
 
+# def info_csv(path_to_csv: str, df: pd.DataFrame, data_prefix: str):
+#     if not os.path.exist(path_to_csv):
+#         os.mkdir(path_to_csv)
+#         data = pd.DataFrame.from_dict(dict("data_prefix": data_prefix,
+#                                  "from_date": min(df["date"]),
+#                                  "to_date": max(df["date"]),
+#                                  "n_tweets": len(df.index)))
+#         data.to_csv(path_to_csv)
+#     else:
+#         data = pd.read_csv(path_to_csv)
+
+    
+    # {min(df["date"])} to {max(df["date"])} and total number of tweets is {len(df.index)}
+
+
 ########################################################################################################################
 ##     DEFINE INPUT
 ########################################################################################################################
@@ -416,13 +453,15 @@ if __name__ == "__main__":
     save_file(w_freqs, out_path, f'{data_prefix}_w_freq.pkl')
 
     # Bigrams
-    bigrams = get_bigrams(df, lemma_stop_words) 
-    save_file(bigrams, out_path, f'{data_prefix}_bigrams.pkl')
+    bigrams_by_week = get_bigrams(df, lemma_stop_words, by_week=True) 
+    bigrams_all_time = get_bigrams(df, lemma_stop_words) 
+    save_file(bigrams_by_week, out_path, f'{data_prefix}_weekly_bigrams.pkl')
+    save_file(bigrams_all_time, out_path, f'{data_prefix}_bigrams.pkl')
 
     # Wordcloud
-    # texts = wordcloud_prep(df)
-    # wordcloud_dict = {'texts': texts, 'my_stop_words': lemma_stop_words+keyword_list}
-    # save_dict(wordcloud_dict, out_path, f'{data_prefix}_wordcloud.pkl') # the actual .png is used, not the .pkl file
+    texts = wordcloud_prep(df)
+    wordcloud_dict = {'texts': texts, 'my_stop_words': lemma_stop_words+keyword_list}
+    save_dict(wordcloud_dict, out_path, f'{data_prefix}_wordcloud.pkl') # the actual .png is used, not the .pkl file
 
     # Tweet frequency
     tweet_frequency = tweet_freq(data_prefix)
