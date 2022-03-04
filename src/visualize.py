@@ -354,7 +354,7 @@ def create_bigrams(freq_df, stop_words):
         # print(tweet, type(tweet))
         tokens = [token for token in tweet if token not in stop_words]
         terms_bigram.append(list(bigrams(tokens)))
-    print('here')
+
     # terms_bigram = [list(bigrams(ast.literal_eval(tweet))) for tweet in df['tokens_list']]
     # Flatten list of bigrams in clean tweets
     bigrms = list(itertools.chain(*terms_bigram))
@@ -457,13 +457,12 @@ def visualize(data_prefix, root_path, sentiment_models, ysmooth_1, ysmooth_2, st
     if not os.path.exists(path_to_streamlit):
         os.mkdir(path_to_streamlit)
     vis_word_cloud(data_prefix, root_path, wordcloud, os.path.join(path_to_streamlit, f'{data_prefix}_wordcloud.png'))
-    
+
     # BIGRAM GRAPH
     d = create_bigrams(df, stop_words)
     k_numbers_to_try = [1,2,3,4,5]
     for k in k_numbers_to_try:
         vis_bigram_graph(data_prefix, root_path, d, graph_layout_number = k)
-    
     
     print(df.head())
     print(df.columns)
@@ -561,6 +560,7 @@ if __name__ == "__main__":
     stops = sp(tokenized)
     lemma_stop_words = [t.lemma_ for t in stops]
     lemma_stop_words = list(set(lemma_stop_words))
+    # lemma_stop_words=["stop"]
 
     sentiment_models = ['vader', 'bert-tone']
     
