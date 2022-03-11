@@ -83,7 +83,8 @@ def define_megapath():
         ic(pathname)
         mega_path = glob.glob(pathname)
         ic(mega_path)
-    elif (len(from_date) > 1) & (len(to_date) > 1):
+    # elif (len(from_date) > 1) & (len(to_date) > 1):
+    elif from_date and to_date:
         ic(from_date, to_date)
         ic(type(from_date), type(to_date))
         pathname = '/data/001_twitter_hope/preprocessed/da/*.ndjson'
@@ -106,7 +107,7 @@ def define_megapath():
             if element in mega_path:
                 mega_path.remove(element)
                 
-    elif len(from_date) > 1:
+    elif from_date:
         pathname = '/data/001_twitter_hope/preprocessed/da/*.ndjson'
         min_date = remove_date_dash(from_date)
         mega_path = glob.glob(pathname)
@@ -121,7 +122,7 @@ def define_megapath():
             if element in mega_path:
                 mega_path.remove(element)
                 
-    elif len(to_date) > 1:
+    elif to_date:
         pathname = '/data/001_twitter_hope/preprocessed/da/*.ndjson'
         max_date = remove_date_dash(to_date)
         mega_path = glob.glob(pathname)
