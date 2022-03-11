@@ -130,7 +130,8 @@ def prep_word_freq(freq_df, stop_words):
     word_freq = word_freq.to_frame().reset_index().rename(columns={"index": "Word", 0: "Frequency"})
 
     for stop_word in stop_words:
-        word_freq = word_freq[word_freq["Word"].str.contains(stop_word) == False]
+        # word_freq = word_freq[word_freq["Word"].str.contains(stop_word) == False] 
+        w_freq = w_freq[-w_freq["word"].isin(stop_words)]
     
     return texts, word_freq
 
@@ -323,7 +324,7 @@ def vis_word_freq(data_prefix, root_path, word_freq, nr_of_words):
     fig.savefig(plot_name)
     print("Save figure done\n------------------\n")
     
-def vis_word_cloud(data_prefix, root_path, wordcloud):
+def vis_word_cloud(data_prefix, root_path, wordcloud, second_path=None):
     plt.figure(figsize=(40, 30))
     # Display image
     plt.imshow(wordcloud) 
@@ -331,6 +332,8 @@ def vis_word_cloud(data_prefix, root_path, wordcloud):
     plt.axis("off");
     plot_name = os.path.join(root_path, "fig", f'{data_prefix}', f'{data_prefix}_word_cloud.png')
     plt.savefig(plot_name)
+    if second_path:
+        plt.savefig(second_path)
     
 # Aggregate a frequency DF
 def get_tweet_frequencies(df):
@@ -352,7 +355,7 @@ def create_bigrams(freq_df, stop_words):
         # print(tweet, type(tweet))
         tokens = [token for token in tweet if token not in stop_words]
         terms_bigram.append(list(bigrams(tokens)))
-    print('here')
+
     # terms_bigram = [list(bigrams(ast.literal_eval(tweet))) for tweet in df['tokens_list']]
     # Flatten list of bigrams in clean tweets
     bigrms = list(itertools.chain(*terms_bigram))
@@ -451,14 +454,16 @@ def visualize(data_prefix, root_path, sentiment_models, ysmooth_1, ysmooth_2, st
                         background_color='white', colormap="rocket", 
                         collocations=False, stopwords = my_stop_words).generate(texts)
 
-    vis_word_cloud(data_prefix, root_path, wordcloud)
-    
+    path_to_streamlit = os.path.join('..', f'{data_prefix}_files', f'{data_prefix}_streamlit')
+    if not os.path.exists(path_to_streamlit):
+        os.mkdir(path_to_streamlit)
+    vis_word_cloud(data_prefix, root_path, wordcloud, os.path.join(path_to_streamlit, f'{data_prefix}_wordcloud.png'))
+
     # BIGRAM GRAPH
     d = create_bigrams(df, stop_words)
     k_numbers_to_try = [1,2,3,4,5]
     for k in k_numbers_to_try:
         vis_bigram_graph(data_prefix, root_path, d, graph_layout_number = k)
-    
     
     print(df.head())
     print(df.columns)
@@ -556,6 +561,7 @@ if __name__ == "__main__":
     stops = sp(tokenized)
     lemma_stop_words = [t.lemma_ for t in stops]
     lemma_stop_words = list(set(lemma_stop_words))
+    # lemma_stop_words=["stop"]
 
     sentiment_models = ['vader', 'bert-tone']
     

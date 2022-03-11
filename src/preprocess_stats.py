@@ -10,6 +10,7 @@ import glob
 from configparser import ConfigParser
 from ast import literal_eval
 from datetime import date
+from functools import partial
 
 ########################################################################################################################
 ##     DEFINE FUNCTIONS
@@ -83,6 +84,11 @@ def get_tweet_frequencies(df):
     freq_tweets = pd.merge(df, tweet_freq, how='left', on=['date'])#, 'id', 'created_at'])
     return freq_tweets
 
+# Check whether the searched for keywords include specific words
+def check_keywords(string: str, lst1: list, lst2: list):
+    check = all([any([x in string for x in lst1]), any([x in string for x in lst2])])
+    return check
+
 ########################################################################################################################
 ##     MAIN FUNCTION
 ########################################################################################################################
@@ -105,13 +111,24 @@ def preprocess_stats(data_prefix: str,
         df = pd.read_csv(input_data,lineterminator='\n', index_col=0).dropna()
     else:
         df = pd.read_csv(input_data,lineterminator='\n')[1:].rename(columns={"0":"created_at", "1":"id", "2":"text", "3":"search_keyword"})
+    
+    if data_prefix == "danmark":
+        # If the query is denmark talking about covid in denmark
+        # Then make sure to only include relevant tweets, not tweets on only either dk or covid
+        dk = ["dk", "danmark"]
+        cov = ["corona", "covid", "omicron", "omikron"]
+        partial_func = partial(check_keywords, lst1=dk, lst2=cov)
+        df["relevant"] = list(map(partial_func, df["search_keyword"]))
+        df = df[df["relevant"]==True]
+        df = df.drop(columns=["relevant"])
+
     print(df.head())
 
     df = df[df["created_at"] != '0'].reset_index(drop=True)
     df = df[df["created_at"] != 'created_at'].reset_index(drop=True)
     df = df.sort_values(by='created_at').reset_index(drop=True)
     print(len(df))
-    
+     
     print(df.created_at.unique())
     df["date"] = pd.to_datetime(df["created_at"], utc=True).dt.strftime('%Y-%m-%d')
     
