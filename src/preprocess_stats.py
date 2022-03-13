@@ -132,7 +132,7 @@ def preprocess_stats(data_prefix: str,
     print(df.created_at.unique())
     df["date"] = pd.to_datetime(df["created_at"], utc=True).dt.strftime('%Y-%m-%d')
     
-    if language == 'da' and (len(from_date) > 1) and (len(to_date) > 1):
+    if language == 'da' and from_date and to_date:
         # Choose specified date range
         mask = (df['date'] > from_date) & (df['date'] <= to_date)
         df = df.loc[mask]
