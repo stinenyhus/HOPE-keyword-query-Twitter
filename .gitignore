@@ -3,6 +3,7 @@
 *.pkl
 *.log
 *.pyc
+*.txt
 src/logs/*
 src/nohup.out
 src/__pycache__/*
