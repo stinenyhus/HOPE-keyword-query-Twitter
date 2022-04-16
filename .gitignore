@@ -13,6 +13,7 @@ makrel_mette/*
 notebooks/old_notebooks/*
 git_setup.sh
 notebooks/split_jul.ipynb
+notebooks/proportion.ipynb
 mette_f_bert.ipynb
 keyword_dict.ndjson
 notebooks/streamlit.ipynb
@@ -22,5 +23,3 @@ GPT.ipynb
 extract_tweetID.py
 ids/*
 dehydrated_ids.zip
-src/daily_proportion.py
-src/trending_topics.py
