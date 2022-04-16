@@ -131,7 +131,7 @@ def prep_word_freq(freq_df, stop_words):
 
     for stop_word in stop_words:
         # word_freq = word_freq[word_freq["Word"].str.contains(stop_word) == False] 
-        w_freq = w_freq[-w_freq["word"].isin(stop_words)]
+        word_freq = word_freq[-word_freq["Word"].isin(stop_words)]
     
     return texts, word_freq
 

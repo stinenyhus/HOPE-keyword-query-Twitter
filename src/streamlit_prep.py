@@ -430,7 +430,7 @@ if __name__ == "__main__":
         stop_words = set(STOPWORDS)
     
     tokenizer = sp.tokenizer
-    stop_words = list(stop_words)
+    stop_words = list(stop_words+"'s")
     # Tokenize and Lemmatize stop words
     joint_stops = " ".join(stop_words)
     tokenized = tokenizer(joint_stops).doc.text
