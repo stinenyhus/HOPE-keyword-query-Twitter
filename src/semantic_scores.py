@@ -42,6 +42,12 @@ def semantic_scores(data_prefix: str,
 
     # filename_out = root_path + data_prefix + "_vis.csv"
     filename_out = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_vis.csv')
+
+    print("Does the file already exist?: ", os.path.exists(filename_out))
+    if os.path.exists(filename_out):
+        ori_df = pd.read_csv(filename_out)
+        sent_df = pd.concat([ori_df, sent_df])
+
     sent_df.to_csv(filename_out, index = False)
 
 ########################################################################################################################
