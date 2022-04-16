@@ -2,6 +2,8 @@
 *.csv
 *.pkl
 *.log
+*.pyc
+*.txt
 src/logs/*
 src/nohup.out
 src/__pycache__/*
@@ -20,3 +22,5 @@ GPT.ipynb
 extract_tweetID.py
 ids/*
 dehydrated_ids.zip
+src/daily_proportion.py
+src/trending_topics.py
