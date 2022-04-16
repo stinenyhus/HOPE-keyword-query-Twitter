@@ -174,7 +174,7 @@ def set_late_plot_settings(fig, ax1, if_dates):
     if if_dates:
         # Define the date  format
         ax1.xaxis_date()
-        date_form = mdates.DateFormatter("%d-%b-%Y")
+        date_form = mdates.DateFormatter("%b-%Y")
         ax1.xaxis.set_major_formatter(date_form)
 
     ax1.set(ylim=(0, None))
