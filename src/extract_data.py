@@ -56,17 +56,24 @@ def ignore_dates_less_than(output_name):
     """Finds out which dates already exist in the processed dataset and removes files from mega path that are less than the max date
     output_name: path to the already existing output dataframe
     """
-    ori_df = pd.read_csv(output_name)
-    ori_df = ori_df[ori_df["0"] != 'created_at'].reset_index(drop=True)
-        
-    dates = pd.to_datetime(ori_df["0"].dropna()[1:], utc=True).dt.strftime('%Y-%m-%d').drop_duplicates().reset_index(drop = True).astype(str)
+    print("Applying function ignore_dates_less_than")
+    ori_df = pd.read_csv(output_name, lineterminator="\n")
+    # ori_df = ori_df[ori_df["0"] != 'created_at'].reset_index(drop=True)
+    print(ori_df.head())
+    # dates = pd.to_datetime(ori_df["0"].dropna()[1:], utc=True).dt.strftime('%Y-%m-%d').drop_duplicates().reset_index(drop = True).astype(str)
+    dates = pd.to_datetime(ori_df["created_at"], utc=True).dt.strftime('%Y-%m-%d').drop_duplicates().reset_index(drop = True).astype(str)
     maximum_date = remove_date_dash(max(dates))
-        
+
     files_to_ignore = []
     for file in mega_path:
         date = re.findall(r'\/data\/001_twitter_hope\/preprocessed\/da\/td_(\d*)', file)[0]
         if date <= maximum_date:
             files_to_ignore.append(file)
+
+    # print("Files to ignore:") 
+    # print(len(files_to_ignore))
+    # print("Mega path:")
+    # print(len(mega_path))
 
     for element in files_to_ignore:
         if element in mega_path:
@@ -76,6 +83,7 @@ def ignore_dates_less_than(output_name):
 
 
 def define_megapath():
+    print("Applying function define_megapath")
     print(from_date)
     print(type(from_date))
     if test_limit:
@@ -158,13 +166,12 @@ def extract_data(keyword_list:list,
     print("START data extraction for keywords: ", keyword_list)
     print("---")
     
-    # output_name = root_path + data_prefix + "_data.csv"
-    output_name = f'{root_path}{data_prefix}_files/{data_prefix}_data.csv'
+    output_name = os.path.join(f'{root_path}', f'{data_prefix}_files', f'{data_prefix}_final.csv')
     print("Does the file already exist?: ", path.exists(output_name))
     
     if path.exists(output_name):
         mega_path = ignore_dates_less_than(output_name)
-    print("Go through files: \n")    
+    print("Go through files: \n")     
     mega_path.sort()
     
     ic(mega_path)
@@ -237,7 +244,8 @@ def main(argv):
             test_limit = config[f'{key}']["test_limit"]
             small = config[f'{key}']["small"]
             language = config[f'{key}']["lan"]
-            print(f'Running pipeline with key: {key}, keywords: {keywords} from {from_date}. Small = {small}. Language = {language}.')
+    
+    print(f'Running pipeline with key: {key}, keywords: {keywords} from {from_date}. Small = {small}. Language = {language}.')
     
     # convert make sure None is not a str
     from_date = None if from_date == 'None' else from_date

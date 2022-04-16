@@ -209,6 +209,7 @@ def smooth_and_entropy(data_prefix: str,
     df = pd.read_csv(vis_file,lineterminator='\n')
     df = df.sort_values("created_at")
     print(len(df))
+    print(df.head())
     df["date"] = pd.to_datetime(df["created_at"], utc=True).dt.strftime('%Y-%m-%d')
     df["date"] = pd.to_datetime(df["date"])
     
@@ -219,7 +220,7 @@ def smooth_and_entropy(data_prefix: str,
     
     print("Check for compound")
     if 'compound' in df.columns:
-        print("Center compound and entropy")
+        print("Center compound and entropy") 
     else:
         print("No compound")
         ic(df.head())
@@ -311,6 +312,10 @@ if __name__ == "__main__":
     ic(keyword_list)
 
     data_prefix = keyword_list[0]
+    
+    new_data = os.path.join("..", f'{data_prefix}_files', f'{data_prefix}_data.csv')
+    if not os.path.exists(new_data):
+        quit()
     # root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
     root_path = os.path.join("..") 
 

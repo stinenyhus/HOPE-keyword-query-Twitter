@@ -1,5 +1,4 @@
 #!/bin/sh
-
 source /home/commando/.virtualenvs/ss/bin/activate
 python extract_data.py $*
 python join_files.py $* 

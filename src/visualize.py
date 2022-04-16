@@ -532,6 +532,10 @@ if __name__ == "__main__":
     print(keyword_list)
 
     data_prefix = keyword_list[0]
+
+    new_data = os.path.join("..", f'{data_prefix}_files', f'{data_prefix}_data.csv')
+    if not os.path.exists(new_data):
+        quit()
     # root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
     root_path = os.path.join("..") 
     

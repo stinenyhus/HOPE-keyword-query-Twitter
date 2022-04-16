@@ -141,7 +141,14 @@ if __name__ == "__main__":
     print("--------JOIN FILES--------")
 
     if len(os.listdir(temp_path)) == 0:
-        print("Directory is empty")
+        print("Directory is empty, deleting _data file")
+        output_name = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_data.csv')
+        try:
+            os.remove(output_name)
+        except:
+            print ("Deletion of the directory %s failed" % temp_path)
+        else:
+            print ("Successfully deleted the directory %s" % temp_path)
     else:    
         print("Directory is not empty")
         join_files(temp_path, root_path, data_prefix)

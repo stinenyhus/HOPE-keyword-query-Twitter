@@ -176,6 +176,10 @@ if __name__ == "__main__":
     print(keyword_list)
 
     data_prefix = keyword_list[0]
+
+    new_data = os.path.join("..", f'{data_prefix}_files', f'{data_prefix}_data.csv')
+    if not os.path.exists(new_data):
+        quit()
     out = os.path.join("..", f'{data_prefix}_files', f'{data_prefix}_data_bert')
 
     print("---------SENTIMENT BERT----------")
