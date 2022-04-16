@@ -62,11 +62,6 @@ def join_files(temp_path: str,
     print("Get data: ", data_prefix)
     df = get_df(filenames)
     df = df.rename(columns = {0:"0", 1:"1", 2:"2", 3:"3"})
-
-    print("Does the file already exist?: ", path.exists(output_name))
-    if path.exists(output_name):
-        ori_df = pd.read_csv(output_name)
-        df = pd.concat([ori_df, df])
     
     print("Save file")
     df.to_csv(output_name, index=False)
