@@ -1,68 +1,70 @@
 echo "Starting pipeline on all queries at $(date '+%d-%m %H:%M')"
 
 # Vaccine
-DATE=$(date '+%d%m') # Get current date
-bash pipeline.sh -k vaccin &> logs/vaccin_$(date '+%d%m').log 
-echo "Finished running pipeline on vaccin at $(date '+%d-%m %H:%M')"
+echo "Starting pipeline on vaccin at $(date '+%d-%m %H:%M')"
+bash pipeline.sh -k vaccin &> logs/vaccin.log 
+echo "Finished running pipeline on vaccin)"
 
 # Corona
-DATE=$(date '+%d%m') # Get current date
-bash pipeline.sh -k corona &> logs/corona_$(date '+%d%m').log
-echo "Finished running pipeline on corona at $(date '+%d-%m %H:%M')"
+echo "Starting pipeline on corona at $(date '+%d-%m %H:%M')"
+bash pipeline.sh -k corona &> logs/corona.log
+echo "Finished running pipeline on corona"
 
 # Omicron English tweets
-DATE=$(date '+%d%m') # Get current date
-bash pipeline.sh -k denmark &> logs/denmark_$(date '+%d%m').log &
-echo "Finished running pipeline on denmark (i.e., English tweets) at $(date '+%d-%m %H:%M')"
+echo "Starting pipeline on denmark (i.e., English tweets) at $(date '+%d-%m %H:%M')"
+bash pipeline.sh -k denmark &> logs/denmark.log &
+echo "Finished running pipeline on denmark (i.e., English tweets)"
 
 # Coronapas
-DATE=$(date '+%d%m') # Get current date
-bash pipeline.sh -k coronapas &> logs/coronapas_$(date '+%d%m').log
-echo "Finished running pipeline on coronapas at $(date '+%d-%m %H:%M')"
+echo "Starting pipeline on coronapas at $(date '+%d-%m %H:%M')"
+bash pipeline.sh -k coronapas &> logs/coronapas.log
+echo "Finished running pipeline on coronapas"
 
 # Mundbind
-DATE=$(date '+%d%m') # Get current date
-bash pipeline.sh -k mundbind &> logs/mundbind_$(date '+%d%m').log 
-echo "Finished running pipeline on mundbind at $(date '+%d-%m %H:%M')"
+echo "Starting pipeline on mundbind at $(date '+%d-%m %H:%M')"
+bash pipeline.sh -k mundbind &> logs/mundbind.log 
+echo "Finished running pipeline on mundbind"
 
 # Mette Frederiksen
-DATE=$(date '+%d%m') # Get current date
-bash pipeline.sh -k mettef &> logs/mettef_$(date '+%d%m').log
-echo "Finished running pipeline on mettef at $(date '+%d-%m %H:%M')"
+echo "Starting pipeline on mettef at $(date '+%d-%m %H:%M')"
+bash pipeline.sh -k mettef &> logs/mettef.log
+echo "Finished running pipeline on mettef"
 
 # Restriktion
-DATE=$(date '+%d%m') # Get current date
-bash pipeline.sh -k restriktion &> logs/restriktion_$(date '+%d%m').log
-echo "Finished running pipeline on restriktion at $(date '+%d-%m %H:%M')"
+echo "Starting pipeline on restriktion at $(date '+%d-%m %H:%M')"
+bash pipeline.sh -k restriktion &> logs/restriktion.log
+echo "Finished running pipeline on restriktion"
 
 # Genåbning
-DATE=$(date '+%d%m') # Get current date
-bash pipeline.sh -k genåb &> logs/genåb_$(date '+%d%m').log
-echo "Finished running pipeline on genåb at $(date '+%d-%m %H:%M')"
+echo "Starting pipeline on genåb at $(date '+%d-%m %H:%M')"
+bash pipeline.sh -k genåb &> logs/genåb.log
+echo "Finished running pipeline on genåb"
 
 # Tvang
-DATE=$(date '+%d%m') # Get current date
-bash pipeline.sh -k tvang &> logs/tvang_$(date '+%d%m').log 
-echo "Finished running pipeline on tvang at $(date '+%d-%m %H:%M')"
+echo "Starting pipeline on tvang at $(date '+%d-%m %H:%M')"
+bash pipeline.sh -k tvang &> logs/tvang.log 
+echo "Finished running pipeline on tvang"
 
 # Samfundskritisk
-DATE=$(date '+%d%m') # Get current date
-bash pipeline.sh -k samfundskri &> logs/samfundskri_$(date '+%d%m').log 
-echo "Finished running pipeline on samfundskri at $(date '+%d-%m %H:%M')"
+echo "Starting pipeline on samfundskri at $(date '+%d-%m %H:%M')"
+bash pipeline.sh -k samfundskri &> logs/samfundskri.log 
+echo "Finished running pipeline on samfundskri"
 
 # Omicron
-DATE=$(date '+%d%m') # Get current date
-bash pipeline.sh -k omicron &> logs/omicron_$(date '+%d%m').log 
-echo "Finished running pipeline on omicron (Danish tweets) at $(date '+%d-%m %H:%M')"
+echo "Starting pipeline on omicron (Danish tweets) at $(date '+%d-%m %H:%M')"
+bash pipeline.sh -k omicron &> logs/omicron.log 
+echo "Finished running pipeline on omicron (Danish tweets)"
 
 # Lockdown
-bash pipeline.sh -k lockdown &> logs/lockdown_$(date '+%d%m').log 
-echo "Finished running pipeline on lockdown at $(date '+%d-%m %H:%M')"
+echo "Starting pipeline on lockdown at $(date '+%d-%m %H:%M')"
+bash pipeline.sh -k lockdown &> logs/lockdown.log 
+echo "Finished running pipeline on lockdown"
 
 # Pressemøde
-bash pipeline.sh -k pressemøde &> logs/pressemøde_$(date '+%d%m').log 
-echo "Finished running pipeline on pressemøde at $(date '+%d-%m %H:%M')"
+echo "Starting pipeline on pressemøde at $(date '+%d-%m %H:%M')"
+bash pipeline.sh -k pressemøde &> logs/pressemøde.log 
+echo "Finished running pipeline on pressemøde"
 
-# 17 januar
-bash pipeline.sh -k 17jan &> logs/17jan_$(date '+%d%m').log 
-echo "Finished running pipeline on 17jan at $(date '+%d-%m %H:%M')"
+# # 17 januar
+# bash pipeline.sh -k 17jan &> logs/17jan_$(date '+%d%m').log 
+# echo "Finished running pipeline on 17jan at $(date '+%d-%m %H:%M')"

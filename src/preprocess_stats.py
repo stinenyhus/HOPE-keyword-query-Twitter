@@ -132,7 +132,7 @@ def preprocess_stats(data_prefix: str,
     print(df.created_at.unique())
     df["date"] = pd.to_datetime(df["created_at"], utc=True).dt.strftime('%Y-%m-%d')
     
-    if language == 'da' and (len(from_date) > 1) and (len(to_date) > 1):
+    if language == 'da' and from_date and to_date:
         # Choose specified date range
         mask = (df['date'] > from_date) & (df['date'] <= to_date)
         df = df.loc[mask]
@@ -198,7 +198,7 @@ def main(argv):
 ########################################################################################################################
     
 if __name__ == "__main__":
-    
+     
     keywords, from_date, to_date, language = main(sys.argv[1:])
     ori_keyword_list = keywords.split(",")
     
@@ -213,6 +213,10 @@ if __name__ == "__main__":
     print(keyword_list)
 
     data_prefix = keyword_list[0]
+
+    new_data = os.path.join("..", f'{data_prefix}_files', f'{data_prefix}_data.csv')
+    if not os.path.exists(new_data):
+        quit()
     # root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
     root_path = os.path.join("..") 
     

@@ -28,20 +28,27 @@ def semantic_scores(data_prefix: str,
     # filename = root_path + data_prefix + "_data_pre.csv"
     filename = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_data_bert.csv')
     sent_df = pd.read_csv(filename, lineterminator='\n')
-    print(sent_df.head()) 
     
     sent_df["mentioneless_text"] = sent_df["mentioneless_text"].astype(str)
     sent_df = sent_df.drop_duplicates()
 
     print("Conducting SA with VADER")
-    print(sent_df.head())
+    
     tts = ttx.TextToSentiment(lang=language, method="dictionary")
     out = tts.texts_to_sentiment(list(sent_df['mentioneless_text'].values))
     sent_df = pd.concat([sent_df, out], axis=1).dropna()
+    print(sent_df.head())
     print("Joining SA results")
 
     # filename_out = root_path + data_prefix + "_vis.csv"
     filename_out = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_vis.csv')
+    
+    print("Does the file already exist?: ", os.path.exists(filename_out))
+    if os.path.exists(filename_out):
+        ori_df = pd.read_csv(filename_out, lineterminator="\n")
+        sent_df = pd.concat([ori_df, sent_df]) 
+
+    print(sent_df.head())
     sent_df.to_csv(filename_out, index = False)
 
 ########################################################################################################################
@@ -104,6 +111,10 @@ if __name__ == "__main__":
     print(keyword_list)
 
     data_prefix = keyword_list[0]
+    
+    new_data = os.path.join("..", f'{data_prefix}_files', f'{data_prefix}_data.csv')
+    if not os.path.exists(new_data):
+        quit()
     # root_path = "/home/stine/HOPE-keyword-query-Twitter/"
     root_path = os.path.join("..") 
     

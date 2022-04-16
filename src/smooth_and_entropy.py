@@ -18,6 +18,7 @@ import re
 import string
 import getopt, sys
 import os
+import multiprocessing
 import os.path
 from os import path
 
@@ -43,7 +44,25 @@ def entropy2(labels,
         ent -= i * math.log(i, base)
     return ent
 
-def gaussian_kernel(arr, 
+def kernel_function(x_y_sigma_pos: tuple):
+    '''This function takes in a tuple with four values/parameters and applies a gaussian kernel for one value
+    The tuple should contain:
+        x_vals: the entire array of x-values numbering the inputs
+        y_vals: the entire array of y-values to apply smoothing on
+        sigma: the sd of the gaussian distribution to use for the smoothing
+        x_position: the single x-position for the value to smooth
+
+    Args:
+        x_y_sigma_pos (tuple): Tuple containing the four parameters
+
+    Returns: the smoothed value for the input
+    '''
+    x_vals, y_vals, sigma, x_position = x_y_sigma_pos # Unpacking input tuple
+    kernel = np.exp(-(x_vals - x_position) ** 2 / (2 * sigma ** 2))
+    kernel = kernel / sum(kernel)
+    return sum(y_vals * kernel)
+
+def gaussian_kernel_mapper(arr, 
                     sigma=False, 
                     fwhm=False):
     """ gaussian kernel smoother for signal arr
@@ -61,11 +80,11 @@ def gaussian_kernel(arr,
         sigma = sigma
         fwhm = sigma * np.sqrt(8 * np.log(2))
     print("[INFO] Applying Gaussian kernel for \u03C3 = {} and FWHM = {} ".format(round(sigma,2), round(fwhm,2)))
-    smoothed_vals = np.zeros(y_vals.shape)
-    for x_position in x_vals:
-        kernel = np.exp(-(x_vals - x_position) ** 2 / (2 * sigma ** 2))
-        kernel = kernel / sum(kernel)
-        smoothed_vals[x_position] = sum(y_vals * kernel)
+
+    x_y_sigma_pos = [(x_vals, y_vals, sigma, x) for x in x_vals]
+    pool = multiprocessing.Pool(processes=10)
+    smoothed_vals = pool.map(kernel_function, x_y_sigma_pos)
+    
     return smoothed_vals
 
 def get_tweet_frequencies(df):
@@ -119,48 +138,48 @@ def smooth_2000(df, if_compound, if_nroftweets, if_bert, if_small):
     if if_compound:
         if if_small:
             print("Compound FWHM = 200")
-            df["s200_compound"] = gaussian_kernel(df["centered_compound"], sigma = 1, fwhm = 200)
+            df["s200_compound"] = gaussian_kernel_mapper(df["centered_compound"], sigma = 1, fwhm = 200)
         else:
             print("Compound FWHM = 2000")
-            df["s2000_compound"] = gaussian_kernel(df["centered_compound"], sigma = 1, fwhm = 2000)
+            df["s2000_compound"] = gaussian_kernel_mapper(df["centered_compound"], sigma = 1, fwhm = 2000)
     if if_nroftweets:
         if if_small:
             print("Nr FWHM = 200")
-            df["s200_nr_of_tweets"] = gaussian_kernel(df["nr_of_tweets"], sigma = 1, fwhm = 200)
+            df["s200_nr_of_tweets"] = gaussian_kernel_mapper(df["nr_of_tweets"], sigma = 1, fwhm = 200)
         else:
             print("Nr FWHM = 2000")
-            df["s2000_nr_of_tweets"] = gaussian_kernel(df["nr_of_tweets"], sigma = 1, fwhm = 2000)
+            df["s2000_nr_of_tweets"] = gaussian_kernel_mapper(df["nr_of_tweets"], sigma = 1, fwhm = 2000)
     if if_bert:
         if if_small:
             print("BERT FWHM = 200")
-            df["s200_polarity_score_z"] = gaussian_kernel(df["polarity_score_z"], sigma = 1, fwhm = 200)
+            df["s200_polarity_score_z"] = gaussian_kernel_mapper(df["polarity_score_z"], sigma = 1, fwhm = 200)
         else:
             print("BERT FWHM = 2000")
-            df["s2000_polarity_score_z"] = gaussian_kernel(df["polarity_score_z"], sigma = 1, fwhm = 2000)
+            df["s2000_polarity_score_z"] = gaussian_kernel_mapper(df["polarity_score_z"], sigma = 1, fwhm = 2000)
     return df
 
 def smooth_5000(df, if_compound, if_nroftweets, if_bert, if_small):
     if if_compound:
         if if_small:
             print("Compound FWHM = 500")
-            df["s500_compound"] = gaussian_kernel(df["centered_compound"], sigma = 1, fwhm = 500)
+            df["s500_compound"] = gaussian_kernel_mapper(df["centered_compound"], sigma = 1, fwhm = 500)
         else:
             print("Compound FWHM = 5000")
-            df["s5000_compound"] = gaussian_kernel(df["centered_compound"], sigma = 1, fwhm = 5000)
+            df["s5000_compound"] = gaussian_kernel_mapper(df["centered_compound"], sigma = 1, fwhm = 5000)
     if if_nroftweets:
         if if_small:
             print("Nr FWHM = 500")
-            df["s500_nr_of_tweets"] = gaussian_kernel(df["nr_of_tweets"], sigma = 1, fwhm = 500)
+            df["s500_nr_of_tweets"] = gaussian_kernel_mapper(df["nr_of_tweets"], sigma = 1, fwhm = 500)
         else:
             print("Nr FWHM = 5000")
-            df["s5000_nr_of_tweets"] = gaussian_kernel(df["nr_of_tweets"], sigma = 1, fwhm = 5000)
+            df["s5000_nr_of_tweets"] = gaussian_kernel_mapper(df["nr_of_tweets"], sigma = 1, fwhm = 5000)
     if if_bert:
         if if_small:
             print("BERT FWHM = 500")
-            df["s500_polarity_score_z"] = gaussian_kernel(df["polarity_score_z"], sigma = 1, fwhm = 500)
+            df["s500_polarity_score_z"] = gaussian_kernel_mapper(df["polarity_score_z"], sigma = 1, fwhm = 500)
         else:
             print("BERT FWHM = 5000")
-            df["s5000_polarity_score_z"] = gaussian_kernel(df["polarity_score_z"], sigma = 1, fwhm = 5000)
+            df["s5000_polarity_score_z"] = gaussian_kernel_mapper(df["polarity_score_z"], sigma = 1, fwhm = 5000)
     return df
 
 ########################################################################################################################
@@ -190,6 +209,7 @@ def smooth_and_entropy(data_prefix: str,
     df = pd.read_csv(vis_file,lineterminator='\n')
     df = df.sort_values("created_at")
     print(len(df))
+    print(df.head())
     df["date"] = pd.to_datetime(df["created_at"], utc=True).dt.strftime('%Y-%m-%d')
     df["date"] = pd.to_datetime(df["date"])
     
@@ -200,7 +220,7 @@ def smooth_and_entropy(data_prefix: str,
     
     print("Check for compound")
     if 'compound' in df.columns:
-        print("Center compound and entropy")
+        print("Center compound and entropy") 
     else:
         print("No compound")
         ic(df.head())
@@ -292,6 +312,10 @@ if __name__ == "__main__":
     ic(keyword_list)
 
     data_prefix = keyword_list[0]
+    
+    new_data = os.path.join("..", f'{data_prefix}_files', f'{data_prefix}_data.csv')
+    if not os.path.exists(new_data):
+        quit()
     # root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
     root_path = os.path.join("..") 
 

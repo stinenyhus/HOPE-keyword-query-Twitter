@@ -120,16 +120,10 @@ def get_hashtag_frequencies(df):
 
 # Calculate word frequency
 def word_freq(data: pd.DataFrame, stop_words: List[str], n_words=None):
-    for word in stop_words:
-        print(word)
     w_freq = data.tokens_string.str.split(expand = True).stack().value_counts()
     w_freq = w_freq.to_frame().reset_index().rename(columns={'index': 'word', 0: 'Frequency'})
-    # for stop_word in stop_words:
-    #     w_freq = w_freq[w_freq["word"].str.contains(stop_word) == False]
     w_freq = w_freq[-w_freq["word"].isin(stop_words)]
-    # print("After stopword removal")
-    # for w in w_freq["word"]:
-    #     print(w)
+
     if not n_words:
         df_freq= w_freq.nlargest(len(w_freq.index), columns=['Frequency'])
     else: 
@@ -418,6 +412,10 @@ if __name__ == "__main__":
 
     data_prefix = keyword_list[0]
 
+    new_data = os.path.join("..", f'{data_prefix}_files', f'{data_prefix}_data.csv')
+    if not os.path.exists(new_data):
+        quit()
+
     print('--STREAMLIT PREPARATION--')
     print('Data prefix = ', data_prefix, '\n---------------\n')
     ## load stopwords ##
@@ -430,7 +428,7 @@ if __name__ == "__main__":
         stop_words = set(STOPWORDS)
     
     tokenizer = sp.tokenizer
-    stop_words = list(stop_words+"'s")
+    stop_words = list(stop_words+["'s"])
     # Tokenize and Lemmatize stop words
     joint_stops = " ".join(stop_words)
     tokenized = tokenizer(joint_stops).doc.text
