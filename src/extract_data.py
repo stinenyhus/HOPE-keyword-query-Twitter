@@ -206,6 +206,8 @@ def extract_data(keyword_list:list,
     
     if path.exists(output_name):
         mega_path = ignore_dates_less_than(output_name, mega_path_pre)
+    else:
+        mega_path = mega_path_pre
     print("Go through files: \n")     
     mega_path.sort()
     
