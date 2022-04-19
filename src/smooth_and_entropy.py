@@ -98,7 +98,6 @@ def apply_date_mask(df, from_date):
     return df
 
 def center_compound(df):
-    print(df.head())
     print("Sum compound ", sum(df["compound"]))
     print("Len compound ", len(df["compound"]))
     
@@ -137,17 +136,17 @@ def center_entropy(df):
 def smooth_2000(df, if_compound, if_nroftweets, if_bert, if_small):
     if if_compound:
         if if_small:
-            print("Compound FWHM = 200")
+            print("VADER compound FWHM = 200")
             df["s200_compound"] = gaussian_kernel_mapper(df["centered_compound"], sigma = 1, fwhm = 200)
         else:
-            print("Compound FWHM = 2000")
+            print("VADER compound FWHM = 2000")
             df["s2000_compound"] = gaussian_kernel_mapper(df["centered_compound"], sigma = 1, fwhm = 2000)
     if if_nroftweets:
         if if_small:
-            print("Nr FWHM = 200")
+            print("Nr of tweets FWHM = 200")
             df["s200_nr_of_tweets"] = gaussian_kernel_mapper(df["nr_of_tweets"], sigma = 1, fwhm = 200)
         else:
-            print("Nr FWHM = 2000")
+            print("Nr of tweets FWHM = 2000")
             df["s2000_nr_of_tweets"] = gaussian_kernel_mapper(df["nr_of_tweets"], sigma = 1, fwhm = 2000)
     if if_bert:
         if if_small:
@@ -161,17 +160,17 @@ def smooth_2000(df, if_compound, if_nroftweets, if_bert, if_small):
 def smooth_5000(df, if_compound, if_nroftweets, if_bert, if_small):
     if if_compound:
         if if_small:
-            print("Compound FWHM = 500")
+            print("VADER compound FWHM = 500")
             df["s500_compound"] = gaussian_kernel_mapper(df["centered_compound"], sigma = 1, fwhm = 500)
         else:
-            print("Compound FWHM = 5000")
+            print("VADER compound FWHM = 5000")
             df["s5000_compound"] = gaussian_kernel_mapper(df["centered_compound"], sigma = 1, fwhm = 5000)
     if if_nroftweets:
         if if_small:
-            print("Nr FWHM = 500")
+            print("Nr of tweets FWHM = 500")
             df["s500_nr_of_tweets"] = gaussian_kernel_mapper(df["nr_of_tweets"], sigma = 1, fwhm = 500)
         else:
-            print("Nr FWHM = 5000")
+            print("Nr of tweets FWHM = 5000")
             df["s5000_nr_of_tweets"] = gaussian_kernel_mapper(df["nr_of_tweets"], sigma = 1, fwhm = 5000)
     if if_bert:
         if if_small:
@@ -208,8 +207,7 @@ def smooth_and_entropy(data_prefix: str,
     vis_file = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_vis.csv')
     df = pd.read_csv(vis_file,lineterminator='\n')
     df = df.sort_values("created_at")
-    print(len(df))
-    print(df.head())
+    print(f"Dataframe has {len(df)} columns")
     df["date"] = pd.to_datetime(df["created_at"], utc=True).dt.strftime('%Y-%m-%d')
     df["date"] = pd.to_datetime(df["date"])
     
@@ -218,9 +216,9 @@ def smooth_and_entropy(data_prefix: str,
     if len(df) < 1:
         print("ERROR: Apply a from_date in the bash command with e.g. '-f 2021-01-01'.")
     
-    print("Check for compound")
+    print("Check that compound column exist")
     if 'compound' in df.columns:
-        print("Center compound and entropy") 
+        print("Column does exist - centering compound and entropy") 
     else:
         print("No compound")
         ic(df.head())
@@ -234,11 +232,11 @@ def smooth_and_entropy(data_prefix: str,
         X = np.array(df["polarity_score"]).reshape(-1, 1)
         df['polarity_score_z'] = StandardScaler().fit_transform(X)
     
-    print("START SMOOTHING")
+    print("\nSTART SMOOTHING\n")
     df = smooth_2000(df, if_compound, if_nroftweets, if_bert, if_small)
-    print("Smooth1 DONE")
+    print("Smooth1 DONE (200/2000)\n")
     df = smooth_5000(df, if_compound, if_nroftweets, if_bert, if_small)
-    print("Smooth2 DONE")
+    print("Smooth2 DONE (500/5000)\n")
 
     comment = []
     if if_compound:
@@ -281,7 +279,6 @@ def main(argv):
             test_limit = config[f'{key}']["test_limit"]
             small = config[f'{key}']["small"]
             language = config[f'{key}']["lan"]
-            print(f'Running smoothing pipeline with key: {key}, keywords: {keywords} from {from_date}. Small = {small}. Language = {language}.')
     
     # convert make sure None is not a str
     from_date = None if from_date == 'None' else from_date
@@ -296,9 +293,9 @@ def main(argv):
 ########################################################################################################################
 
 if __name__ == "__main__":
-    
+    print("\n---------- Running smooth_and_entropy.py ----------")
     keywords, test_limit, from_date, small, language = main(sys.argv[1:])
-    ic(main(sys.argv[1:]))
+    
     ori_keyword_list = keywords.split(",")
     
     keyword_list = []
@@ -308,19 +305,19 @@ if __name__ == "__main__":
         else:
             keyword = re.sub("~", " ", keyword)
         keyword_list.append(keyword)
-    
-    ic(keyword_list)
 
     data_prefix = keyword_list[0]
     
+    # Check if a file with suffix _data exists
+    # This means that there is new data to process
+    # If not, just quit the pipeline for this query
     new_data = os.path.join("..", f'{data_prefix}_files', f'{data_prefix}_data.csv')
     if not os.path.exists(new_data):
         quit()
-    # root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
     root_path = os.path.join("..") 
 
     ###############################
-    print("--------SMOOTHING PIPELINE START--------")
+    print(f"--------Start smoothing for keywords {keyword_list} and small = {small}--------")
 
     smooth_and_entropy(data_prefix, root_path, from_date, 
                        if_compound = True, if_nroftweets = True, 
