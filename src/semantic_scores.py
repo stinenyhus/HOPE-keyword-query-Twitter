@@ -32,18 +32,14 @@ def semantic_scores(data_prefix: str,
     sent_df["mentioneless_text"] = sent_df["mentioneless_text"].astype(str)
     sent_df = sent_df.drop_duplicates()
 
-    print("Conducting SA with VADER")
-    
     tts = ttx.TextToSentiment(lang=language, method="dictionary")
     out = tts.texts_to_sentiment(list(sent_df['mentioneless_text'].values))
     sent_df = pd.concat([sent_df, out], axis=1).dropna()
-    print(sent_df.head())
-    print("Joining SA results")
 
     # filename_out = root_path + data_prefix + "_vis.csv"
     filename_out = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_vis.csv')
     
-    print("Does the file already exist?: ", os.path.exists(filename_out))
+    print(f"Does the file {filename_out} already exist?: {os.path.exists(filename_out)}")
     if os.path.exists(filename_out):
         ori_df = pd.read_csv(filename_out, lineterminator="\n")
         sent_df = pd.concat([ori_df, sent_df]) 
@@ -81,7 +77,6 @@ def main(argv):
             test_limit = config[f'{key}']["test_limit"]
             small = config[f'{key}']["small"]
             language = config[f'{key}']["lan"]
-            print(f'Running VADER semantics with key: {key}, keywords: {keywords} from {from_date}. Small = {small}. Language = {language}.')
     
     # convert make sure None is not a str
     from_date = None if from_date == 'None' else from_date
@@ -96,7 +91,7 @@ def main(argv):
 ########################################################################################################################
     
 if __name__ == "__main__":
-    
+    print("\n---------- Running semantic_scores.py ----------")
     keywords, language = main(sys.argv[1:])
     ori_keyword_list = keywords.split(",")
     
@@ -107,17 +102,18 @@ if __name__ == "__main__":
         else:
             keyword = re.sub("~", " ", keyword)
         keyword_list.append(keyword)
-    
-    print(keyword_list)
 
     data_prefix = keyword_list[0]
     
+    # Check if a file with suffix _data exists
+    # This means that there is new data to process
+    # If not, just quit the pipeline for this query
+
     new_data = os.path.join("..", f'{data_prefix}_files', f'{data_prefix}_data.csv')
     if not os.path.exists(new_data):
         quit()
-    # root_path = "/home/stine/HOPE-keyword-query-Twitter/"
     root_path = os.path.join("..") 
     
     ############################
-    print("---------SENTIMENT ANALYSIS----------")
+    print(f"Running sentiment analysis on keywords {keyword_list} with language = {language}")
     semantic_scores(data_prefix, root_path, language)

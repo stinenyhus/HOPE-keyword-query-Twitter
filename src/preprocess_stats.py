@@ -11,6 +11,7 @@ from configparser import ConfigParser
 from ast import literal_eval
 from datetime import date
 from functools import partial
+from typing import Tuple, List
 
 ########################################################################################################################
 ##     DEFINE FUNCTIONS
@@ -62,14 +63,8 @@ def remove_quote_tweets(df):
     """
     df["text"] = df["text"].astype(str)
     df["mentioneless_text"] = df.apply(lambda row: remove_mentions(row), axis = 1)
-    # print("Generated mentioneless texts")
     df["text50"] = df["mentioneless_text"].str[0:50]
-    
     df["dupe50"] = df["text50"].duplicated(keep = "first")
-
-    # print("Length of quote tweets: ")
-    # ic(len(df[df["dupe50"] == True]))
-    
     df = df[df["dupe50"] == False].reset_index()
     return df
 
@@ -85,7 +80,19 @@ def get_tweet_frequencies(df):
     return freq_tweets
 
 # Check whether the searched for keywords include specific words
-def check_keywords(string: str, lst1: list, lst2: list):
+def check_keywords(data: Tuple[str, List[str], List[str]]):
+    """This function checks whether at least one string from each of two provided lists is in string
+    
+    Args:
+        data (tuple): the three needed variables in the order string, lst1, lst2
+            string (str): the string to check for keywords 
+            lst1 (list): first list of strings to look for 
+            lst2 (list): second list of strings to look for
+
+    Returns: 
+        check (bool): bool (True/False) indicating whether the string contained at least one string from each list 
+    """
+    string, lst1, lst2 = data
     check = all([any([x in string for x in lst1]), any([x in string for x in lst2])])
     return check
 
@@ -117,19 +124,17 @@ def preprocess_stats(data_prefix: str,
         # Then make sure to only include relevant tweets, not tweets on only either dk or covid
         dk = ["dk", "danmark"]
         cov = ["corona", "covid", "omicron", "omikron"]
-        partial_func = partial(check_keywords, lst1=dk, lst2=cov)
-        df["relevant"] = list(map(partial_func, df["search_keyword"]))
+        data_tuples = [(row_keyword, dk, cov) for row_keyword in df["search_keyword"]]
+
+        df["relevant"] = list(map(check_keywords, data_tuples))
         df = df[df["relevant"]==True]
         df = df.drop(columns=["relevant"])
-
-    print(df.head())
-
+    
     df = df[df["created_at"] != '0'].reset_index(drop=True)
     df = df[df["created_at"] != 'created_at'].reset_index(drop=True)
     df = df.sort_values(by='created_at').reset_index(drop=True)
-    print(len(df))
-     
-    print(df.created_at.unique())
+    print(f'The dataframe has {len(df)} rows.')
+    
     df["date"] = pd.to_datetime(df["created_at"], utc=True).dt.strftime('%Y-%m-%d')
     
     if language == 'da' and from_date and to_date:
@@ -140,17 +145,14 @@ def preprocess_stats(data_prefix: str,
         mask = (df['date'] > from_date)
         df = df.loc[mask]
 
-    
     print("\nStart removing quote tweets")
     df2 = remove_quote_tweets(df)
     print("\nGet tweet frequencies")
     df3 = get_tweet_frequencies(df2)
     
-    if language == 'da':
-        print(df3.groupby(["search_keyword"]).count().reset_index())
-    
     # out_filename = root_path + data_prefix + "_data_pre.csv"
     out_filename = os.path.join(root_path, f'{data_prefix}_files',f'{data_prefix}_data_pre.csv')
+    print(f"Saving the {out_filename} file.")
     df3.to_csv(out_filename, index=False)
     
 ########################################################################################################################
@@ -183,7 +185,6 @@ def main(argv):
             test_limit = config[f'{key}']["test_limit"]
             small = literal_eval(config[f'{key}']["small"])
             language = config[f'{key}']["lan"]
-            print(f'Running preprocessing with key: {key}, keywords: {keywords} from {from_date}. Small = {small}. Language = {language}.')
 
     # convert make sure None is not a str
     from_date = None if from_date == 'None' else from_date
@@ -198,7 +199,7 @@ def main(argv):
 ########################################################################################################################
     
 if __name__ == "__main__":
-     
+    print("---------- Running preprocess_stats.py ----------")
     keywords, from_date, to_date, language = main(sys.argv[1:])
     ori_keyword_list = keywords.split(",")
     
@@ -209,11 +210,15 @@ if __name__ == "__main__":
         else:
             keyword = re.sub("~", " ", keyword)
         keyword_list.append(keyword)
-    
-    print(keyword_list)
+
+    print(f"Running preprocess stats with keywords {keyword_list}")
 
     data_prefix = keyword_list[0]
 
+    # Check if a file with suffix _data exists
+    # This means that there is new data to process
+    # If not, just quit the pipeline for this query
+    
     new_data = os.path.join("..", f'{data_prefix}_files', f'{data_prefix}_data.csv')
     if not os.path.exists(new_data):
         quit()
@@ -221,5 +226,4 @@ if __name__ == "__main__":
     root_path = os.path.join("..") 
     
     ############################
-    print("---PREPROCESS STATS---")
     preprocess_stats(data_prefix, root_path, from_date, to_date, language)

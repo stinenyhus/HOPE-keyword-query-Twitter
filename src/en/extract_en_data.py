@@ -96,7 +96,7 @@ def extract_en_data(data_prefix: str, root_path: str):
     path = os.path.join('/data', 'twitter-omicron-denmark', '*')
     out_filepath = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_data.csv')
 
-    print(f'''Runnings extract_en_data with:
+    print(f'''Running extract_en_data with:
             data_prefix={data_prefix},
             path={path}''')
 
@@ -105,7 +105,7 @@ def extract_en_data(data_prefix: str, root_path: str):
                   cols = ['created_at', 'id', 'text'],
                   rm_retweets=True)
     
-    print('--------------- \n extract_en_data.py done \n---------------')
+    print('--------------- \nextract_en_data.py done \n---------------')
 
 
 def main(argv):
