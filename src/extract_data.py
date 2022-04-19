@@ -194,9 +194,7 @@ def define_megapath(test_limit: Optional[str] = None, from_date:  Optional[str] 
 def extract_data(keyword_list:list, 
                  data_prefix: str, 
                  mega_path_pre:str,
-                 root_path: str, 
-                 from_date:str, 
-                 to_date:str): 
+                 root_path: str): 
     """Main function that runs and logs extraction of data
     """
     print("START data extraction for keywords: ", keyword_list, "\n")
@@ -299,7 +297,7 @@ if __name__ == "__main__":
     print("---------- Running extract_data.py ----------")
     keywords, test_limit, from_date, to_date, language = main(sys.argv[1:])
     ori_keyword_list = keywords.split(",")
-    print(f"Extracting data using '{ori_keyword_list}' from {from_date} to {to_date}, language = {language}")
+    print(f"Extracting data using {ori_keyword_list} from {from_date} to {to_date}, language = {language}")
     
     keyword_list = []
     for keyword in ori_keyword_list:
@@ -332,6 +330,6 @@ if __name__ == "__main__":
     
     print("--------Data extraction--------")
     if language == 'da':
-        extract_data(keyword_list, data_prefix, mega_path, root_path, from_date, to_date)
+        extract_data(keyword_list, data_prefix, mega_path, root_path)
     if language == 'en':
         extract_en_data(data_prefix, root_path)
