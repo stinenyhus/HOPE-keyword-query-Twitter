@@ -325,6 +325,7 @@ def vis_word_freq(data_prefix, root_path, word_freq, nr_of_words):
     print("Save figure done\n------------------\n")
     
 def vis_word_cloud(data_prefix, root_path, wordcloud, second_path=None):
+    print("Visualize wordcloud")
     plt.figure(figsize=(40, 30))
     # Display image
     plt.imshow(wordcloud) 
@@ -333,7 +334,9 @@ def vis_word_cloud(data_prefix, root_path, wordcloud, second_path=None):
     plot_name = os.path.join(root_path, "fig", f'{data_prefix}', f'{data_prefix}_word_cloud.png')
     plt.savefig(plot_name)
     if second_path:
+        print("Also saving figure as {second_path}")
         plt.savefig(second_path)
+    print("Save figure done\n------------------\n")
     
 # Aggregate a frequency DF
 def get_tweet_frequencies(df):
@@ -444,7 +447,6 @@ def visualize(data_prefix, root_path, sentiment_models, ysmooth_1, ysmooth_2, st
         vis_sentiment_compound(data_prefix, root_path, df, mdl, ysmooth_2)
     
     ## WORD FREQUENCY
-    print("Get word frequency")
     texts, word_freq = prep_word_freq(df, my_stop_words)
     vis_word_freq(data_prefix, root_path, word_freq, nr_of_words = 30)
     
@@ -465,8 +467,7 @@ def visualize(data_prefix, root_path, sentiment_models, ysmooth_1, ysmooth_2, st
     for k in k_numbers_to_try:
         vis_bigram_graph(data_prefix, root_path, d, graph_layout_number = k)
     
-    print(df.head())
-    print(df.columns)
+    print(f'Columns in the dataframe are {df.columns}')
 
     output_name = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_final.csv')
     print(f'STATS: dates go from {min(df["date"])} to {max(df["date"])} and total number of tweets is {len(df.index)}')
@@ -517,7 +518,7 @@ def main(argv):
 ########################################################################################################################
 
 if __name__ == "__main__":
-    
+    print("\n---------- Running visualize.py ----------\n")
     keywords, from_date, to_date, small, language = main(sys.argv[1:])
     ori_keyword_list = keywords.split(",")
     
@@ -528,15 +529,15 @@ if __name__ == "__main__":
         else:
             keyword = re.sub("~", " ", keyword)
         keyword_list.append(keyword)
-    
-    print(keyword_list)
 
     data_prefix = keyword_list[0]
 
+    # Check if a file with suffix _data exists
+    # This means that there is new data to process
+    # If not, just quit the pipeline for this query
     new_data = os.path.join("..", f'{data_prefix}_files', f'{data_prefix}_data.csv')
     if not os.path.exists(new_data):
         quit()
-    # root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
     root_path = os.path.join("..") 
     
     ## conditional for ysmooth depending on small
@@ -570,7 +571,6 @@ if __name__ == "__main__":
     sentiment_models = ['vader', 'bert-tone']
     
     ###############################
-    print("---VISUALIZE---")
-    print("START loading data: ", data_prefix)
+    print("START loading data for visualization: ", data_prefix)
  
     visualize(data_prefix, root_path, sentiment_models, ysmooth_1, ysmooth_2, lemma_stop_words, keyword_list)

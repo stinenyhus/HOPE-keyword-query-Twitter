@@ -214,7 +214,7 @@ def save_dict(data: dict,
     with open(file_path, 'wb') as handle:
         pickle.dump(wordcloud_dict, handle)
 
-def set_lab_freq(small: str):
+def set_lab_freq(small: bool):
     '''
     Function for getting the correct column with smoothed values
     '''
@@ -224,7 +224,7 @@ def set_lab_freq(small: str):
     else:
         return 's5000_nr_of_tweets'
 
-def tweet_freq(keyword: str):
+def tweet_freq(small: bool):
     """Calculates the number of tweets per day.
     Returns pd.DataFrame with columns indicating date, nr of tweets that day and mean
 
@@ -233,9 +233,9 @@ def tweet_freq(keyword: str):
 
     Returns:
         pd.DataFrame: the dataframe with the tweet frequencies
-    """    
+    """
     # Get name of column with smoothed frequencies
-    name = set_lab_freq(keyword)
+    name = set_lab_freq(small)
 
     # Calculate mean of day
     mean = df.groupby('date')[name].mean()
@@ -339,20 +339,6 @@ def mean_ci_sentiment(df: pd.DataFrame):
     return merged_final
 
 
-# def info_csv(path_to_csv: str, df: pd.DataFrame, data_prefix: str):
-#     if not os.path.exist(path_to_csv):
-#         os.mkdir(path_to_csv)
-#         data = pd.DataFrame.from_dict(dict("data_prefix": data_prefix,
-#                                  "from_date": min(df["date"]),
-#                                  "to_date": max(df["date"]),
-#                                  "n_tweets": len(df.index)))
-#         data.to_csv(path_to_csv)
-#     else:
-#         data = pd.read_csv(path_to_csv)
-
-    
-    # {min(df["date"])} to {max(df["date"])} and total number of tweets is {len(df.index)}
-
 
 ########################################################################################################################
 ##     DEFINE INPUT
@@ -384,7 +370,6 @@ def main(argv):
             test_limit = config[f'{key}']["test_limit"]
             small = config[f'{key}']["small"]
             language = config[f'{key}']["lan"]
-            print(f'Running streamlit preparation with key: {key}, keywords: {keywords} from {from_date}. Small = {small}. Language = {language}')
     
     # convert make sure None is not a str
     from_date = None if from_date == 'None' else from_date
@@ -396,7 +381,7 @@ def main(argv):
 
 
 if __name__ == "__main__":
-
+    print("\n---------- Running streamlit_prep.py ----------\n")
     keywords, from_date, to_date, small, language = main(sys.argv[1:])
     ori_keyword_list = keywords.split(",")
     
@@ -407,29 +392,31 @@ if __name__ == "__main__":
         else:
             keyword = re.sub("~", " ", keyword)
         keyword_list.append(keyword)
-    
-    print(keyword_list)
 
     data_prefix = keyword_list[0]
 
+    # Check if a file with suffix _data exists
+    # This means that there is new data to process
+    # If not, just quit the pipeline for this query
     new_data = os.path.join("..", f'{data_prefix}_files', f'{data_prefix}_data.csv')
     if not os.path.exists(new_data):
         quit()
 
-    print('--STREAMLIT PREPARATION--')
-    print('Data prefix = ', data_prefix, '\n---------------\n')
+    print('--Running streamlit preparation--')
+    print('Data prefix =', data_prefix, '\n---------------\n')
     ## load stopwords ##
     if language == 'da':
         sp = spacy.load('da_core_news_lg')
         file = open("stop_words.txt","r+")
         stop_words = file.read().split()
+        stop_words = set(stop_words + ["'s"])
     if language == 'en':
         sp = spacy.load('en_core_web_lg')
         stop_words = set(STOPWORDS)
+        stop_words.add("'s")
     
-    tokenizer = sp.tokenizer
-    stop_words = list(stop_words+["'s"])
     # Tokenize and Lemmatize stop words
+    tokenizer = sp.tokenizer
     joint_stops = " ".join(stop_words)
     tokenized = tokenizer(joint_stops).doc.text
     stops = sp(tokenized)
@@ -440,8 +427,12 @@ if __name__ == "__main__":
     df = load_data(data_prefix=data_prefix)
 
     ## make .pkl files ##
-    out_path = os.path.join('..', f'{data_prefix}_files', f'{data_prefix}_streamlit')
-    # out_path = os.path.join('/home', 'commando', 'stine-sara', 'data', 'hope', 'streamlit', f'{data_prefix}_streamlit')
+    out_path = os.path.join('..', f'data_{language}', f'{data_prefix}')
+    # Make sure folders are ready
+    if not os.path.exists(os.path.join('..', f'data_{language}')):
+        os.makedirs(out_path)
+    if not os.path.exists(out_path):
+        os.makedirs(out_path)
 
     ## Prepare df ##
     df = prepare_date_col(df)
@@ -469,12 +460,12 @@ if __name__ == "__main__":
     save_file(bigrams_all_time, out_path, f'{data_prefix}_bigrams.pkl')
 
     # Wordcloud
-    texts = wordcloud_prep(df)
-    wordcloud_dict = {'texts': texts, 'my_stop_words': lemma_stop_words+keyword_list}
-    save_dict(wordcloud_dict, out_path, f'{data_prefix}_wordcloud.pkl') # the actual .png is used, not the .pkl file
+    # texts = wordcloud_prep(df)
+    # wordcloud_dict = {'texts': texts, 'my_stop_words': lemma_stop_words+keyword_list}
+    # save_dict(wordcloud_dict, out_path, f'{data_prefix}_wordcloud.pkl') # the actual .png is used, not the .pkl file
 
     # Tweet frequency
-    tweet_frequency = tweet_freq(data_prefix)
+    tweet_frequency = tweet_freq(small)
     save_file(tweet_frequency, out_path, f'{data_prefix}_tweet_freq.pkl')
 
     # Mean and CI sentiment

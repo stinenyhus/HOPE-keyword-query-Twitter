@@ -27,7 +27,6 @@ def get_df(filenames: list):
         df = df.append(df_0)
 
     df = df.drop_duplicates()
-    print("DF:", df.head())
     return df
 
 def empty_data_folder(temp_path: str):
@@ -59,11 +58,11 @@ def join_files(temp_path: str,
     # output_name = root_path + data_prefix + "_data.csv"
     output_name = os.path.join(root_path, f'{data_prefix}_files', f'{data_prefix}_data.csv')
 
-    print("Get data: ", data_prefix)
+    print("Get data:", data_prefix)
     df = get_df(filenames)
     df = df.rename(columns = {0:"0", 1:"1", 2:"2", 3:"3"})
     
-    print("Save file")
+    print(f"Save file: {output_name}")
     df.to_csv(output_name, index=False)
     del df
 
@@ -97,8 +96,6 @@ def main(argv):
             test_limit = config[f'{key}']["test_limit"]
             small = config[f'{key}']["small"]
             language = config[f'{key}']["lan"]
-            print(f'Joining files using key: {key}, keywords: {keywords} from {from_date}. Small = {small}. Language = {language}.')
-    
 
     # convert make sure None is not a str
     from_date = None if from_date == 'None' else from_date
@@ -106,7 +103,6 @@ def main(argv):
     test_limit = None if test_limit == 'None' else test_limit
     small = literal_eval(small)
 
-    print('Input keywords are ', keywords)
     return keywords, language
 
 ########################################################################################################################
@@ -114,6 +110,7 @@ def main(argv):
 ########################################################################################################################
 
 if __name__ == "__main__":
+    print("---------- Running join_files.py ----------\n")
     
     keywords, language = main(sys.argv[1:])
     if language == 'en': # script only relevant for danish tweets
@@ -130,7 +127,7 @@ if __name__ == "__main__":
             keyword = re.sub("~", " ", keyword)
         keyword_list.append(keyword)
     
-    print(keyword_list)
+    print(f"Joining files with keywords {ori_keyword_list}, language = {language}")
 
     data_prefix = keyword_list[0]
     # root_path = "/home/commando/stine-sara/HOPE-keyword-query-Twitter/"
@@ -138,7 +135,7 @@ if __name__ == "__main__":
     temp_path = os.path.join(root_path, f"tmp_{data_prefix}")
     
     ###############################
-    print("--------JOIN FILES--------")
+    print("--------Joining files--------")
 
     if len(os.listdir(temp_path)) == 0:
         print("Directory is empty, deleting _data file")
@@ -153,4 +150,3 @@ if __name__ == "__main__":
         print("Directory is not empty")
         join_files(temp_path, root_path, data_prefix)
     empty_data_folder(temp_path)
-    print("--------FINISHED----------")

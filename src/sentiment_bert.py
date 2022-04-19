@@ -32,7 +32,6 @@ def bert_scores(data_prefix: str, out_path:str):
     df = pd.read_csv(filename)
 
     # Prepare BERT models
-    print('Prepare models')
     nlp = spacy.blank("da")
     # Doc.set_extension("vader_da", getter=da_vader_getter, force = True) #da_vader_getter is from dacy
     nlp = add_bertemotion_laden(nlp)    
@@ -49,6 +48,7 @@ def bert_scores(data_prefix: str, out_path:str):
                                 "polarity", 
                                 "polarity_score",
                                 "polarity_prob"])
+    print("Preparing and saving the {out_path} file")
     out.to_csv(f'{out_path}.csv')
 
     # Ensure that all texts are strings to avoid float error (hopefully)
@@ -150,7 +150,6 @@ def main(argv):
             test_limit = config[f'{key}']["test_limit"]
             small = config[f'{key}']["small"]
             language = config[f'{key}']["lan"]
-            print(f'Running BERT models with key: {key}, keywords: {keywords} from {from_date} and small = {small}')
     
     # convert make sure None is not a str
     from_date = None if from_date == 'None' else from_date
@@ -162,6 +161,7 @@ def main(argv):
 
 
 if __name__ == "__main__":
+    print("\n---------- Running sentiment_bert.py ----------")
     keywords, language = main(sys.argv[1:])
     ori_keyword_list = keywords.split(",")
     
@@ -176,14 +176,20 @@ if __name__ == "__main__":
     print(keyword_list)
 
     data_prefix = keyword_list[0]
+    
+    # Check if a file with suffix _data exists
+    # This means that there is new data to process
+    # If not, just quit the pipeline for this query
 
     new_data = os.path.join("..", f'{data_prefix}_files', f'{data_prefix}_data.csv')
     if not os.path.exists(new_data):
         quit()
     out = os.path.join("..", f'{data_prefix}_files', f'{data_prefix}_data_bert')
 
-    print("---------SENTIMENT BERT----------")
+    print(f"Extracting BERT sentiment for language = {language}")
     if language == "en":
         bert_scores_en(data_prefix, out)
-    else:    
+    elif language == "da":
         bert_scores(data_prefix, out)
+    else:
+        print("ERROR: language not specified")
