@@ -69,5 +69,10 @@ echo "Finished pipeline on pressemøde"
 # bash pipeline.sh -k 17jan &> logs/17jan_$(date '+%d%m').log 
 # echo "Finished running pipeline on 17jan at $(date '+%d-%m %H:%M')"
 
+# Daily proportion
+echo "Starting calculating daily proportion using keywords from 'selvtest'"
+bash daily_proportion_pipeline.sh -k selvtest &> logs/daily_proportion.log
+echo "Finished daily proportion pipeline"
+
 echo "Finished pipeline on all queries at $(date '+%d-%m %H:%M')"
 echo 

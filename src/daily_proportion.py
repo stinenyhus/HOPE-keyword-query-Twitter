@@ -2,14 +2,14 @@
 Take all the keywords from selvtest query and calculate daily what proportion of Danish tweets mention them that week
 '''
 
-import ndjson, os
+import ndjson, os, sys
 from csv import writer
 from glob import glob
 import pandas as pd
 from typing import Optional, List
 import re
 
-from extract_data import remove_date_dash
+from extract_data import remove_date_dash, main
 from preprocess_stats import remove_quote_tweets
 from smooth_and_entropy import gaussian_kernel_mapper
 
@@ -123,8 +123,8 @@ def preprocess_df(df: pd.DataFrame):
     return df
 
 
-def daily_proportion(date: str):
-    query_path = os.path.join('..', 'selvtest_files', 'selvtest_data_pre.csv')
+def daily_proportion(date: str, data_prefix: str):
+    query_path = os.path.join('..', f'{data_prefix}_files', f'{data_prefix}_all_ids.csv')
     files_to_ignore = []
 
     id_list = []
@@ -139,16 +139,17 @@ def daily_proportion(date: str):
     proportion = covid_tweets/all_tweets
     return [make_date_dash(date), proportion, covid_tweets, all_tweets]
 
-def proportion_and_write(path_and_date: tuple):
-    path, date = path_and_date
-    row = ['NaN'] + daily_proportion(date)
+
+def proportion_and_write(path_date_dataprefix: tuple):
+    path, date, data_prefix = path_date_dataprefix
+    row = ['NaN'] + daily_proportion(date, data_prefix)
     append_list_as_row(path, row)
 
     if date[-2:] == '01':
         print('date = ', date)
 
 
-def main(save_path: str, smooth: bool=False):
+def main_proportion(save_path: str, data_prefix: str, smooth: bool=False):
     import multiprocessing
     ### Creating out csv ###
     print('>> creating out data frame')
@@ -164,10 +165,10 @@ def main(save_path: str, smooth: bool=False):
     print(f'latest date found is {max(dates)}')
 
     ## map to list of dates ##
-    savepath_and_dates = [(save_path, date) for date in sorted(dates)]
+    savepath_dates_dataprefix = [(save_path, date, data_prefix) for date in sorted(dates)]
     print('>> mapping function')
     pool = multiprocessing.Pool(processes=10)
-    pool.map(proportion_and_write, savepath_and_dates)
+    pool.map(proportion_and_write, savepath_dates_dataprefix)
 
     # smoothing
     if smooth:
@@ -233,7 +234,6 @@ def visualize_proportion(df: pd.DataFrame, save_folder: str, event_dict: Optiona
     
     '''
     print('>> Visualize daily proportion')
-    print(f'plots saved in folder: {save_folder}')
 
     df["date"] = pd.to_datetime(df["date"])
     df['proportion_percentage'] = df['proportion']*100
@@ -247,29 +247,46 @@ def visualize_proportion(df: pd.DataFrame, save_folder: str, event_dict: Optiona
         # with events
         if event_dict:
             plot_dailyproportion(df, smoothing_value, save_folder, event_dict)
+    print(f'plots saved in folder: {save_folder}')
 
 
 if __name__=='__main__':
     save_folder = os.path.join('..', 'daily_proportion_files')
     file_name = 'daily_proportion.csv'
-    save_fig_folder = os.path.join('..', 'fig', 'dailyproportion')
+    save_fig_folder = os.path.join('..', 'data_da')
     save_path = os.path.join(save_folder, file_name)
     smooth = True
 
-    print(f'''RUNNING DAILY PROPORTION: 
+    print(f'''---------- Running daily_proportion.py ---------- 
     save_path = {save_path}
     smooth = {smooth},
     save_fig_folder = {save_fig_folder}''')
+
+    keywords, test_limit, from_date, to_date, language, day_prob = main(sys.argv[1:])
+    ori_keyword_list = keywords.split(",")
+    
+    keyword_list = []
+    for keyword in ori_keyword_list:
+        if re.findall("~#", keyword):
+            keyword = re.sub('~', '', keyword)
+        else:
+            keyword = re.sub("~", " ", keyword)
+        keyword_list.append(keyword)
+    
+    data_prefix = keyword_list[0]
+    new_data = os.path.join("..", f'{data_prefix}_files', f'{data_prefix}_data.csv')
+    if not os.path.exists(new_data):
+        quit()
 
     if not os.path.exists(save_folder):
         os.mkdir(save_folder)
     if not os.path.exists(save_fig_folder):
         os.mkdir(save_fig_folder)
-
-    main(save_path, smooth=smooth)
+    
+    main_proportion(save_path, data_prefix, smooth=smooth)
 
     # visualize only if smoothed
-    if smooth:  # only happens if smooth is False
+    if smooth:  # only happens if smooth is True
         col_list = ['date', 'proportion', 'n_keyword_tweets', 'n_all_tweets', 'proportion_s5', 'proportion_s20']
         df = pd.read_csv(f'{save_path[:-4]}_smoothed.csv', usecols=col_list)
     
