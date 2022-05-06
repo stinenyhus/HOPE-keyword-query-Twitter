@@ -456,7 +456,7 @@ def visualize(data_prefix, root_path, sentiment_models, ysmooth_1, ysmooth_2, st
                         background_color='white', colormap="rocket", 
                         collocations=False, stopwords = my_stop_words).generate(texts)
 
-    path_to_streamlit = os.path.join('..', f'{data_prefix}_files', f'{data_prefix}_streamlit')
+    path_to_streamlit = os.path.join('..', f'data_da', f'{data_prefix}')
     if not os.path.exists(path_to_streamlit):
         os.mkdir(path_to_streamlit)
     vis_word_cloud(data_prefix, root_path, wordcloud, os.path.join(path_to_streamlit, f'{data_prefix}_wordcloud.png'))
