@@ -94,3 +94,27 @@ src/visualize.py
 Creates initial visuals: keyword mentions frequency over time, compound sentiment over time, polarity sentiment over time, frequent hashtags, frequent words, wordcloud, bigram graphs with k varying between 1 and 5. Saves to ``fig/dataprefix/``
 
 *NOTE: if the file for the specific keyword search has already been conducted, the code first checks whether that is true, and only adds the data for new incoming dates, instead of rerunning extraction and preprocessing on all of the data.*
+
+
+## Covid timeline
+The repository also includes a timeline over important events in the Covid pandemic (`timeline_covid.xlsx`) as identified by SSI (Statens Serum Institut):
+
+ https://www.ssi.dk/-/media/arkiv/subsites/covid19/presse/tidslinje-over-covid-19/covid-19-tidslinje-for-2020-2022-lang-version---version-1---april-2022.pdf?la=da.
+
+
+All events in the timeline have been annotated with three different codes:
+
+* type: what is the type of the event described?
+    * epidemiological: number of confirmed cases, new variant detected, number of people vaccinated etc. 
+    * policy: changes regarding restrictions, vaccine authorizations, masks, etc.
+    * other: events not fitting either of the two. Examples are the queen's speech, changes in test capacity
+* nationality: nationality of the event
+    * danish: event happens in Denmark.
+    * international: event is global/international. This can for example be global EU restrictions (closing all borders) or when the first case in another country is confirmed
+* relevant: is the event relevant/impactful in the context of news/social media data
+    * 0: the event is not relevant
+    * 1: the event is relevant
+    * 2: the event may be relevant
+
+All events have been coded independently by Sara Møller Østergaard and Stine Nyhus Larsen. Cases of disagreement have been discussed and cleared with Rebekah Baglini until agreement was reached. 
+    
