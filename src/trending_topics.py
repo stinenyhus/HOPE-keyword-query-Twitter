@@ -13,8 +13,10 @@ import os
 import spacy
 from functools import partial
 from datetime import datetime
+import datetime as dt
 import pandas as pd
 from collections import Counter
+from dateutil.relativedelta import relativedelta
 
 ####################
 # Define functions #
@@ -72,6 +74,10 @@ def lemmatize_tweet(tweet, spacy_model, tokenizer):
     
     return lemmatized_tweet
 
+# Revert week function
+def revert_week(week):
+    return week.split("-")[1]+"-"+week.split("-")[0]
+
 #### ndjson reader and cleaner --> generators ####
 def ndjson_gen(filepath: str, must_include:str = "ndjson"):
     """This function is generator yielding one twitter post incl. metadata at a time
@@ -92,9 +98,8 @@ def ndjson_gen(filepath: str, must_include:str = "ndjson"):
                 for post in reader:
                     yield post
 
-def clean_tokenize_gen(generator, function, trouble_dict, stopwords:list, field="text"):
+def clean_tokenize_gen(generator, function, trouble_dict, stopwords:list, min_date, field="text"):
     """This function cleans and individual tweets and tokenizes it 
-    Also creates a global variable called weird_dates and stores dates that are difficult to handle there
 
     Args:
         generator (generator): a generator yielding one post at a time
@@ -111,10 +116,8 @@ def clean_tokenize_gen(generator, function, trouble_dict, stopwords:list, field=
             continue
         if "^RT" in post[field] or "rt" in post[field]:
             continue
-        lemmas = function(post[field])
-        lemmas = [lemma for lemma in lemmas if lemma not in stopwords]
-        date = post["created_at"]
         
+        date = post["created_at"]
         # Dates have different formats, handling with try except
         try:
             as_date = datetime.strptime(date[:10], '%Y-%m-%d')
@@ -123,6 +126,12 @@ def clean_tokenize_gen(generator, function, trouble_dict, stopwords:list, field=
             as_date = datetime.strftime(as_date_long, '%Y-%m-%d')
             as_date = datetime.strptime(as_date, '%Y-%m-%d')
 
+        # If the file has already been processed, skip
+        if datetime.date(as_date) < min_date:
+            continue
+
+        lemmas = function(post[field])
+        lemmas = [lemma for lemma in lemmas if lemma not in stopwords]
         # Manually assigning week to dates around year change
         if str(as_date)[:10] in trouble_dict.keys():
             week = trouble_dict[str(as_date)[:10]]
@@ -150,7 +159,7 @@ if __name__ == "__main__":
     trouble_weeks = {'2020-12-28': '53-2020',
                      '2020-12-29': '53-2020',
                      '2020-12-30': '53-2020',
-                     '2020-12-31': '53-2020',
+                     '2020-12-31': '53-2020', 
                      '2021-01-01': '53-2020',
                      '2021-01-02': '53-2020',
                      '2021-01-03': '53-2020',
@@ -163,12 +172,22 @@ if __name__ == "__main__":
                      '2022-01-01': '52-2021',
                      '2022-01-02': '52-2021'}
 
-    print(f'Before starting the function, keys in dict are: {trouble_weeks.keys()}')
+    # print(f'Before starting the function, keys in dict are: {trouble_weeks.keys()}')
+
+    # Checking what has already been processed
+    file_path = "term_freq_all.ndjson"
+    with open(file_path, 'r') as f:
+        data = ndjson.load(f)
+    max_week = max([revert_week(week) for week in data[0].keys()])
+    year = max_week.split("-")[0]
+    minimum_date = dt.date(int(year), 1, 1) + relativedelta(weeks=+int(max_week.split("-")[1]))
+    print(f'minimum date is {minimum_date}')
 
     # Prepare generators
     gen = ndjson_gen(path)
     print('Prepared first generator')
-    tuple_gen = clean_tokenize_gen(gen, lemma_partial, trouble_weeks, stopwords=stop_words)
+    
+    tuple_gen = clean_tokenize_gen(gen, lemma_partial, trouble_weeks, stopwords=stop_words, min_date=minimum_date)
     print('Prepared second generator')
 
     # Prepare dictionary
@@ -179,17 +198,16 @@ if __name__ == "__main__":
             terms_weekly[f[1]].update(Counter(f[0]))
         else:
             terms_weekly[f[1]] = Counter(f[0])
-        # if i % 500 == 0:
-        #     print(f'Now processing tweet number {i}, total time spent = {datetime.now() - start}')
+        # if i == 10:
+        #     break
         if i % 5000 == 0:
-            print(f'Saving file so far')
-            with open("temp_term_freq.ndjson", "w", encoding='utf8') as f:
-                ndjson.dump([terms_weekly], f,  ensure_ascii=False)
-            print(f'Total time spent is now {datetime.now() - start}')
+            print(f'Now processed {i} tweets, total time spent is {datetime.now() - start}')
+            print(f'Tweet number {i} has date key {f[1]}')
     
     print("Finished all files, now saving dictionary")
-    with open("term_freq_all_2.ndjson", "w", encoding='utf8') as f:
-        ndjson.dump([terms_weekly], f, ensure_ascii=False)
+    combined = {**data[0], **terms_weekly}
+    with open("term_freq_all.ndjson", "w", encoding='utf8') as f:
+        ndjson.dump([combined], f, ensure_ascii=False)
 
 
 

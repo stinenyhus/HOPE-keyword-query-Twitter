@@ -138,6 +138,17 @@ def get_hashtag_frequencies(df):
 
 # Calculate word frequency
 def word_freq(data: pd.DataFrame, stop_words: List[str], n_words=None):
+    """Takes a dataframe with the column tokens_string,
+    and splits the string and count the tokens in it. Stop words are removed
+
+    Args:
+        data (pd.DataFrame): Dataframe with the tokens_string column
+        stop_words (List[str]): List of stopwords to exclude
+        n_words (int, optional): Max number of tokens to include. Defaults to None.
+
+    Returns:
+        df_freq (pd.DataFrame): The dataframe cotaining tokens and their frequency
+    """    
     w_freq = data.tokens_string.str.split(expand = True).stack().value_counts()
     w_freq = w_freq.to_frame().reset_index().rename(columns={'index': 'word', 0: 'Frequency'})
     w_freq = w_freq[-w_freq["word"].isin(stop_words)]
