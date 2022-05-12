@@ -194,18 +194,21 @@ def define_megapath(test_limit: Optional[str] = None, from_date:  Optional[str] 
 def extract_data(keyword_list:list, 
                  data_prefix: str, 
                  mega_path_pre:str,
-                 root_path: str, 
-                 from_date:str, 
-                 to_date:str): 
+                 root_path: str,
+                 daily_proportion: bool): 
     """Main function that runs and logs extraction of data
     """
     print("START data extraction for keywords: ", keyword_list, "\n")
     
-    output_name = os.path.join(f'{root_path}', f'{data_prefix}_files', f'{data_prefix}_final.csv')
-    print("Does the file already exist?: ", path.exists(output_name))
+    final_name = os.path.join(f'{root_path}', f'{data_prefix}_files', f'{data_prefix}_final.csv')
+    if daily_proportion:
+        final_name = os.path.join('..', f'{data_prefix}_files', f'{data_prefix}_all_ids.csv')
+    print("Does the file already exist?: ", path.exists(final_name))
     
-    if path.exists(output_name):
-        mega_path = ignore_dates_less_than(output_name, mega_path_pre)
+    if path.exists(final_name):
+        mega_path = ignore_dates_less_than(final_name, mega_path_pre)
+    else:
+        mega_path = mega_path_pre
     print("Go through files: \n")     
     mega_path.sort()
     
@@ -259,6 +262,7 @@ def main(argv):
     to_date = ''
     test_limit = '' # this is so that it's possible to test the system on just one day/month of data
     small = ''
+    daily_proportion = ''
     try:
         opts, args = getopt.getopt(argv,"hk:")
         config = ConfigParser()
@@ -279,6 +283,7 @@ def main(argv):
             test_limit = config[f'{key}']["test_limit"]
             small = config[f'{key}']["small"]
             language = config[f'{key}']["lan"]
+            daily_proportion = config[f'{key}']["daily_proportion"]
     
     # convert make sure None is not a str
     from_date = None if from_date == 'None' else from_date
@@ -286,8 +291,9 @@ def main(argv):
     to_date = date.today().strftime("%Y-%m-%d")
     test_limit = None if test_limit == 'None' else test_limit
     small = literal_eval(small)
+    daily_proportion = literal_eval(daily_proportion)
 
-    return keywords, test_limit, from_date, to_date, language
+    return keywords, test_limit, from_date, to_date, language, daily_proportion
 
 ########################################################################################################################
 ##     INPUT
@@ -295,9 +301,9 @@ def main(argv):
 
 if __name__ == "__main__":
     print("---------- Running extract_data.py ----------")
-    keywords, test_limit, from_date, to_date, language = main(sys.argv[1:])
+    keywords, test_limit, from_date, to_date, language, daily_proportion = main(sys.argv[1:])
     ori_keyword_list = keywords.split(",")
-    print(f"Extracting data using '{ori_keyword_list}' from {from_date} to {to_date}, language = {language}")
+    print(f"Extracting data using {ori_keyword_list} from {from_date} to {to_date}, language = {language}")
     
     keyword_list = []
     for keyword in ori_keyword_list:
@@ -330,6 +336,6 @@ if __name__ == "__main__":
     
     print("--------Data extraction--------")
     if language == 'da':
-        extract_data(keyword_list, data_prefix, mega_path, root_path, from_date, to_date)
+        extract_data(keyword_list, data_prefix, mega_path, root_path, daily_proportion)
     if language == 'en':
         extract_en_data(data_prefix, root_path)

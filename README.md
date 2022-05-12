@@ -42,6 +42,7 @@ To run the pipeline an entry for the key must exist in the config file ``src/key
 | test_limit  | Test with limit: to speed up testing, samples only from data of this year/month/day  | YEARMONTHDAY or None  | 202001  | None |
 | small | Small or not: most datasets are small (100-500 tweets per day), use False when it's a large dataset (1000-more tweets per day). This is used for setting the parameters for Gaussian smoothing. Produces two types of smoothing plots (smoother and less smoother, so that smoothing can be done automatically).  | Boolean | True | False |
 | lan  | Language: whether to run the pipeline for Danish or English Twitter.  | Language  | da  | en |
+| daily_proportion | whether the query is run to calculate the daily proportion | Boolean | True | False
 
 *If keywords are special:*
 - If keywords include hashtags trail the 1st hashtag with ~. E.g. ```keywords = keyword1,~#keyword2```.

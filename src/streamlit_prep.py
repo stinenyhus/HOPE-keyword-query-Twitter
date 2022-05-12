@@ -58,9 +58,15 @@ def load_data(data_prefix: str):
     return data
 
 
-def get_tweet_frequencies(df):
+def get_tweet_frequencies(df: pd.DataFrame):
     """
     Add freq of tweets by themselves in the dataset
+
+    Args:
+        df (pd.DataFrame): dataframe with columns nr_of_tweets and date
+
+    Returns: 
+        freq_tweets (pd.DataFrame): dataframe with nr of tweets by day
     """
     # pd.DataFrame creates a new datafrme where "number of tweets" is now the column and it is filled with the associated number
     df_ = df.drop("nr_of_tweets", axis=1)
@@ -73,14 +79,15 @@ def get_tweet_frequencies(df):
 
 
 def prepare_date_col(data: pd.DataFrame):
-    """Turns the column created_at into a datetime column ('date') excluding exact timestamp, including only date
+    """
+    Prepocessing date column in provided df
 
     Args:
-        data (pd.DataFrame): Dataframe with column created_at
-
-    Returns:
-        data (pd.Dataframe): The input dataframe with the new date column 
-    """    
+        data (pd.DataFrame): dataframe with column created_at
+    
+    Returns: 
+        data (pd.DataFrame): dataframe with the column date added
+    """
     data = data.sort_values('created_at')
     data['date'] = pd.to_datetime(data['created_at'], utc=True).dt.strftime('%Y-%m-%d')
     data['date'] = pd.to_datetime(data['date'])
@@ -88,8 +95,11 @@ def prepare_date_col(data: pd.DataFrame):
     return data
 
 
-def extract_hashtags(row):
-    unique_hashtag_list = list(re.findall(r'#\S*\w', row['text']))
+def extract_hashtags(row, col: str = "text"):
+    """
+    Extracts all hashtags from the text
+    """
+    unique_hashtag_list = list(re.findall(r'#\S*\w', row[col]))
     return unique_hashtag_list
 
 
