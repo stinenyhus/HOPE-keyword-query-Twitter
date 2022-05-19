@@ -137,7 +137,17 @@ def get_hashtag_frequencies(df):
 
 
 # Calculate word frequency
-def word_freq(data: pd.DataFrame, stop_words: List[str], n_words=None):
+def word_freq(data: pd.DataFrame, stop_words: List[str], n_words:int=None):
+    '''Calculating word frequency of tokenized tweets
+
+    Args:
+        data (pd.DataFrame): dataframe with the column tokens_string
+        stop_words (List(str)): list of stopwords to exclude from frequency calculations
+        n_words (int, optional): n_words top frequent words to return. Defaults to None, in which case all words are returned
+
+    Returns: 
+        df_freq (pd.DataFrame): dataframe with columns "word" and "frequency"
+    '''
     w_freq = data.tokens_string.str.split(expand = True).stack().value_counts()
     w_freq = w_freq.to_frame().reset_index().rename(columns={'index': 'word', 0: 'Frequency'})
     w_freq = w_freq[-w_freq["word"].isin(stop_words)]
@@ -149,10 +159,39 @@ def word_freq(data: pd.DataFrame, stop_words: List[str], n_words=None):
     return df_freq
 
 # Bigrams
-def get_bigrams(data: pd.DataFrame, stop_words: List[str], by_week=False):
+def get_bigrams(data: pd.DataFrame, 
+                stop_words: List[str], 
+                by_week=False,
+                trouble_weeks ={'2020-12-28': '53-2020',
+                                '2020-12-29': '53-2020',
+                                '2020-12-30': '53-2020',
+                                '2020-12-31': '53-2020',
+                                '2021-01-01': '53-2020',
+                                '2021-01-02': '53-2020',
+                                '2021-01-03': '53-2020',
+            
+                                '2021-12-27': '52-2021',
+                                '2021-12-28': '52-2021',
+                                '2021-12-29': '52-2021',
+                                '2021-12-30': '52-2021',
+                                '2021-12-31': '52-2021',
+                                '2022-01-01': '52-2021',
+                                '2022-01-02': '52-2021'}):
+    '''Calculating bigrams frequency on already tokenized words
+
+    Args:
+        data (pd.DataFrame): dataframe with columns date and tokens_list
+        stop_words (List(str)): list of stopwords to exclude from frequency calculations
+        by_week (bool, optional): whether or not to calculate bigrams on a weekly basis. Defaults to False
+        trouble_weeks (dict, optional): dictionary to handle weeks around year change. Optional
+    
+    Returns
+        bigram_df (pd.DataFrame): dataframe with bigrams and frequency, on a weekly basis if by_week == True
+    '''
     bigram_df = pd.DataFrame()
+
     if by_week:
-        data["Week_Y"] = data["date"].dt.strftime('%V-%Y')
+        data["Week_Y"] = [trouble_weeks.get(str(date)[:10], date.strftime('%V-%Y')) for date in data["date"]]
         weeks = list(data["Week_Y"].unique())
         for week in weeks:
             df = data[data["Week_Y"] == week]
